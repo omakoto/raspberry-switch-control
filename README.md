@@ -1,7 +1,7 @@
 # raspberry-switch-control
 Emulate Nintendo Switch USB Controller with Raspberry Pi
 
-Just after started the project, I found he following project, which almost solves my project. My project is going to be based on it.
+Just after started the project, I found the following project, which almost solves my project. My project is going to be based on it.
 
 1. Control switch from a smart phone
     1. https://mzyy94.com/blog/2020/03/20/nintendo-switch-pro-controller-usb-gadget/

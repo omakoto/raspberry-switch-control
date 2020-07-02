@@ -3,6 +3,18 @@
 # Copied from:
 # https://gist.github.com/mzyy94/60ae253a45e2759451789a117c59acf9#file-add_procon_gadget-sh
 
+device=/dev/hidg0
+
+if (( $(id -u) != 0 )) ; then
+  echo "Error: the script needs to be run as root" 1>&2
+  exit 1
+fi
+
+if [[ -e $device ]]; then
+  echo "Device $device already exists" 1>&2
+  exit 0
+fi
+
 cd /sys/kernel/config/usb_gadget/
 mkdir -p procon
 cd procon
@@ -32,4 +44,8 @@ echo 050115000904A1018530050105091901290A150025017501950A5500650081020509190B290
 
 ln -s functions/hid.usb0 configs/c.1/
 
-ls /sys/class/udc > UDC
+ls /sys/class/udc > UDC # Does it synchronously create the device file??
+
+chmod 666 $device
+
+ls -l $device
