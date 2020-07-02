@@ -21,6 +21,9 @@ func parseCommand(s string) (command string, arg float64, hasArg bool, err error
 	hasArg = true
 
 	arr := strings.Fields(s)
+	if len(arr) == 0 {
+		return "", 0, false, nil
+	}
 	command = arr[0]
 	if len(arr) > 1 {
 		arg, err = strconv.ParseFloat(arr[1], 32)
@@ -39,7 +42,7 @@ func mainLoop(con *nscon.Controller) (err error) {
 	scanner := bufio.NewScanner(os.Stdin)
 	for scanner.Scan() {
 		command, arg, hasArg, err := parseCommand(scanner.Text())
-		if err != nil {
+		if err != nil || command == "" {
 			continue
 		}
 
