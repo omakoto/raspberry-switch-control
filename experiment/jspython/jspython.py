@@ -17,19 +17,19 @@ button_states = {}
 
 # These constants were borrowed from linux/input.h
 axis_names = {
-    0x00 : 'x',
-    0x01 : 'y',
+    0x00 : 'x', # switch L-stick
+    0x01 : 'y', # switch L-stick
     0x02 : 'z',
-    0x03 : 'rx',
-    0x04 : 'ry',
+    0x03 : 'rx', # switch R-stick
+    0x04 : 'ry', # switch R-stick
     0x05 : 'rz',
     0x06 : 'trottle',
     0x07 : 'rudder',
     0x08 : 'wheel',
     0x09 : 'gas',
     0x0a : 'brake',
-    0x10 : 'hat0x',
-    0x11 : 'hat0y',
+    0x10 : 'hat0x', # switch D-pad
+    0x11 : 'hat0y', # switch D-pad
     0x12 : 'hat1x',
     0x13 : 'hat1y',
     0x14 : 'hat2x',
@@ -59,19 +59,19 @@ button_names = {
     0x12a : 'base5',
     0x12b : 'base6',
     0x12f : 'dead',
-    0x130 : 'a',
-    0x131 : 'b',
+    0x130 : 'a', # switch B
+    0x131 : 'b', # switch A
     0x132 : 'c',
-    0x133 : 'x',
-    0x134 : 'y',
-    0x135 : 'z',
-    0x136 : 'tl',
-    0x137 : 'tr',
-    0x138 : 'tl2',
-    0x139 : 'tr2',
-    0x13a : 'select',
-    0x13b : 'start',
-    0x13c : 'mode',
+    0x133 : 'x', # switch X
+    0x134 : 'y', # switch Y
+    0x135 : 'z', # switch Capture
+    0x136 : 'tl',  # switch L
+    0x137 : 'tr',  # switch R
+    0x138 : 'tl2', # switch LZ
+    0x139 : 'tr2', # switch RZ
+    0x13a : 'select', # switch -
+    0x13b : 'start',  # switch +
+    0x13c : 'mode',   # switch Home
     0x13d : 'thumbl',
     0x13e : 'thumbr',
 
