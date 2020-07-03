@@ -155,13 +155,16 @@ func NewJs(file string) (*Js, error) {
 	if errno != 0 {
 		return nil, fmt.Errorf("unable to get axis map of %#v: %w", file, errno)
 	}
-	for _, v := range axisCodes {
-		js.AxisCodes = append(js.AxisCodes, int(v))
+	js.AxisCodes = make([]int, js.NumAxes)
+	js.AxisNames = make([]string, js.NumAxes)
+	js.AxisValues = make([]float64, js.NumAxes)
+	for i, v := range axisCodes {
+		js.AxisCodes[i] = int(v)
 		name, found := axisNameMap[int(v)]
 		if !found {
 			name = fmt.Sprintf("unknown:0x%x", v)
 		}
-		js.AxisNames = append(js.AxisNames, name)
+		js.AxisNames[i] = name
 	}
 
 	// Get the button names.
@@ -170,14 +173,35 @@ func NewJs(file string) (*Js, error) {
 	if errno != 0 {
 		return nil, fmt.Errorf("unable to get button map of %#v: %w", file, errno)
 	}
-	for _, v := range buttonCodes {
-		js.ButtonCodes = append(js.ButtonCodes, int(v))
+	js.ButtonCodes = make([]int, js.NumButtons)
+	js.ButtonNames = make([]string, js.NumButtons)
+	js.ButtonValues = make([]float64, js.NumButtons)
+	for i, v := range buttonCodes {
+		js.ButtonCodes[i] = int(v)
 		name, found := buttonNameMap[int(v)]
 		if !found {
 			name = fmt.Sprintf("unknown:0x%x", v)
 		}
-		js.ButtonNames = append(js.ButtonNames, name)
+		js.ButtonNames[i] = name
 	}
+
+	// Read the initial state.
+	common.Debug("Reading initial state...")
+	var fdSet unix.FdSet
+	timeout := unix.Timeval{}
+	for ;; {
+		fdSet.Bits[in.Fd()] = 1
+		s, err := unix.Select(1, &fdSet, nil, nil, &timeout) // TODO Use epoll
+		common.Check(err, "select")
+		if s != 1 {
+			break
+		}
+		_, err = js.Read()
+		if err != nil {
+			return nil, err
+		}
+	}
+	common.Debugf("%s ready to read", js.DevicePath)
 
 	return js, nil
 }
