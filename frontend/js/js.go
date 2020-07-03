@@ -193,7 +193,7 @@ func NewJs(file string) (*Js, error) {
 	}
 
 	// Read the initial state.
-	common.Debug("Reading initial state...")
+	common.Debug("Reading initial state...") // TODO select doesn't work for the initial events...?
 	var fdSet unix.FdSet
 	timeout := unix.Timeval{}
 	for {
@@ -208,9 +208,21 @@ func NewJs(file string) (*Js, error) {
 			return nil, err
 		}
 	}
+	js.setInitialValues()
+
 	common.Debugf("%s ready to read", js.DevicePath)
+	common.Dump("Js:", &js)
 
 	return js, nil
+}
+
+func (js *Js) setInitialValues() {
+	for i := 0; i < len(js.Axes); i++ {
+		js.Axes[i].setInitialValue()
+	}
+	for i := 0; i < len(js.Buttons); i++ {
+		js.Buttons[i].setInitialValue()
+	}
 }
 
 func (js *Js) Close() error {
@@ -267,10 +279,11 @@ func (js *Js) Read() (JsEvent, error) {
 	case jsEventButton:
 		event.Element = &js.Buttons[oev.Number]
 		event.Value = 0
-		if oev.Value != 0 {
+		if event.Value != 0 {
 			event.Value = 1
 		}
 	}
+	event.Element.Value = event.Value
 	common.Dump("Event:", &event)
 
 	return event, nil

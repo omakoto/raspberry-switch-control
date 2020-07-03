@@ -25,8 +25,6 @@ func realMain() int {
 	common.Checke(err)
 	defer js.Close()
 
-	common.Dump("Js:", &js)
-
 	for ;; {
 		_, err := js.Read()
 		common.Checke(err)
