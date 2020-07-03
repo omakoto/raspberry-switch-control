@@ -7,18 +7,18 @@ import (
 )
 
 type JoystickDispatcher interface {
-	Dispatch(ev *js.JsEvent, con *Consumer)
+	Dispatch(ev *js.JsEvent, con Consumer)
 }
 
 type JoystickInput struct {
 	js         *js.Js
 	dispatcher JoystickDispatcher
-	con        *Consumer
+	con        Consumer
 }
 
 var _ Worker = (*JoystickInput)(nil)
 
-func NewJoystickInput(device string, dispatcher JoystickDispatcher, con *Consumer) (*JoystickInput, error) {
+func NewJoystickInput(device string, dispatcher JoystickDispatcher, con Consumer) (*JoystickInput, error) {
 	js, err := js.NewJs(device)
 	if err != nil {
 		return nil, err

@@ -5,30 +5,38 @@ import (
 	"time"
 )
 
+// Buttons and axes for Switch.
 const (
 	ActionButtonA = iota
 	ActionButtonB
 	ActionButtonX
 	ActionButtonY
 
-	ActionButtonL1
-	ActionButtonL2
-	ActionButtonR1
-	ActionButtonR2
-
-	ActionButtonSelect
-	ActionButtonStart
+	ActionButtonMinus
+	ActionButtonPlus
 
 	ActionButtonHome
 	ActionButtonCapture
 
-	ActionUp = iota
-	ActionUp = iota
-	ActionUp = iota
-	ActionUp = iota
-	ActionUp = iota
-)
+	ActionButtonL
+	ActionButtonR
+	ActionButtonLZ
+	ActionButtonRZ
 
+	ActionButtonDpadUp
+	ActionButtonDpadDown
+	ActionButtonDpadLeft
+	ActionButtonDpadRight
+
+	ActionButtonLeftStickPress
+	ActionButtonRightStickPress
+
+	ActionAxisLX
+	ActionAxisLY
+
+	ActionAxisRX
+	ActionAxisRY
+)
 
 type Action int;
 type Value float64;

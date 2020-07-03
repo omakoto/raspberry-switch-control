@@ -23,11 +23,16 @@ func realMain() int {
 		common.DebugEnabled = true
 	}
 
-	ji, err := nscontroller.NewJoystickInput(*device, nil)
+	backend, err := nscontroller.NewBackendConsumer(os.Stdout)
 	common.Checke(err)
-	defer ji.Close()
+	defer backend.Close()
 
-	ji.Run()
+	joystick, err := nscontroller.NewJoystickInput(*device, nil, backend)
+	common.Checke(err)
+	defer joystick.Close()
+
+	backend.Run()
+	joystick.Run()
 
 	// Wait for enter press
 	scanner := bufio.NewScanner(os.Stdin)
