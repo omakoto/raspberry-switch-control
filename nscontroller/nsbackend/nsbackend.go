@@ -11,6 +11,8 @@ import (
 	"strings"
 )
 
+// TODO Introduce constants for commands.
+
 const (
 	analogToDigitalThreshold = 1.0
 )

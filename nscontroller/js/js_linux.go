@@ -1,4 +1,4 @@
-// +build amd64,linux
+// +build linux
 
 package js
 
@@ -16,6 +16,8 @@ import (
 	"time"
 	"unsafe"
 )
+
+// TODO Introduce constants
 
 /**
  Button layout: Pro controller

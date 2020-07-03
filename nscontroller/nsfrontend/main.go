@@ -2,7 +2,7 @@ package main
 
 import (
 	"github.com/omakoto/go-common/src/common"
-	"github.com/omakoto/raspberry-switch-control/frontend/js"
+	"github.com/omakoto/raspberry-switch-control/nscontroller/js"
 	"github.com/pborman/getopt/v2"
 )
 
