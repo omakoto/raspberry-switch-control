@@ -137,30 +137,30 @@ type JsEvent struct {
 }
 
 // NewJs creates a new Js instance with the given device file.
-func NewJs(file string) (*Js, error) {
-	common.Debugf("Opening %s ...", file)
-	in, err := os.OpenFile(file, os.O_RDONLY, 0)
+func NewJs(device string) (*Js, error) {
+	common.Debugf("Opening %s ...", device)
+	in, err := os.OpenFile(device, os.O_RDONLY, 0)
 	if err != nil {
-		return nil, fmt.Errorf("unable to open %#v: %w", file, err)
+		return nil, fmt.Errorf("unable to open %#v: %w", device, err)
 	}
 
-	js := &Js{DevicePath: file, in: in}
+	js := &Js{DevicePath: device, in: in}
 
 	// Get num axes and buttons.
 	js.NumAxes, err = unix.IoctlGetInt(int(in.Fd()), jsiocgaxes)
 	if err != nil {
-		return nil, fmt.Errorf("unable to get number of axes of %#v: %w", file, err)
+		return nil, fmt.Errorf("unable to get number of axes of %#v: %w", device, err)
 	}
 	js.NumButtons, err = unix.IoctlGetInt(int(in.Fd()), jsiocgbuttons)
 	if err != nil {
-		return nil, fmt.Errorf("unable to get number of buttons of %#v: %w", file, err)
+		return nil, fmt.Errorf("unable to get number of buttons of %#v: %w", device, err)
 	}
 
 	// Get device name.
 	nameBuf := make([]byte, 256, 256)
 	_, _, errno := unix.Syscall(unix.SYS_IOCTL, in.Fd(), uintptr(jsiocgnameBase+(0x10000*len(nameBuf))), uintptr(unsafe.Pointer(&nameBuf[0])))
 	if errno != 0 {
-		return nil, fmt.Errorf("unable to get device name of %#v: %w", file, errno)
+		return nil, fmt.Errorf("unable to get device name of %#v: %w", device, errno)
 	}
 	js.Name = string(bytes.TrimRight(nameBuf, "\000"))
 
@@ -168,7 +168,7 @@ func NewJs(file string) (*Js, error) {
 	axisCodes := make([]byte, js.NumAxes, js.NumAxes)
 	_, _, errno = unix.Syscall(unix.SYS_IOCTL, in.Fd(), uintptr(jsiocgaxmap), uintptr(unsafe.Pointer(&axisCodes[0])))
 	if errno != 0 {
-		return nil, fmt.Errorf("unable to get axis map of %#v: %w", file, errno)
+		return nil, fmt.Errorf("unable to get axis map of %#v: %w", device, errno)
 	}
 	js.Axes = make([]Element, js.NumAxes)
 	for i, v := range axisCodes {
@@ -184,7 +184,7 @@ func NewJs(file string) (*Js, error) {
 	buttonCodes := make([]uint16, js.NumButtons, js.NumButtons)
 	_, _, errno = unix.Syscall(unix.SYS_IOCTL, in.Fd(), uintptr(jsiocgbtnmap), uintptr(unsafe.Pointer(&buttonCodes[0])))
 	if errno != 0 {
-		return nil, fmt.Errorf("unable to get button map of %#v: %w", file, errno)
+		return nil, fmt.Errorf("unable to get button map of %#v: %w", device, errno)
 	}
 	js.Buttons = make([]Element, js.NumButtons)
 	for i, v := range buttonCodes {
@@ -270,6 +270,9 @@ func (js *Js) Read() (JsEvent, error) {
 	// Read the OS event.
 	var oev osJsEvent
 	err := binary.Read(js.in, binary.LittleEndian, &oev)
+	if err == io.EOF {
+		return event, err
+	}
 	if err != nil {
 		return event, fmt.Errorf("unable to read from %#v: %w", js.DevicePath, err)
 	}

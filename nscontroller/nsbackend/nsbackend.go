@@ -134,6 +134,11 @@ func mainLoop(con *nscon.Controller) (err error) {
 		case "py": // D-pad alternative
 			aToD(arg, &con.Input.Dpad.Down, &con.Input.Dpad.Up)
 
+		case "lp": // Left stick press
+			con.Input.Stick.Left.Press = darg
+		case "rp": // Right stick press
+			con.Input.Stick.Right.Press = darg
+
 		case "lx": // Left stick X
 			con.Input.Stick.Left.X = arg
 		case "ly": // Left stick Y
@@ -220,8 +225,8 @@ func realMain() int {
 	// Connect to Switch
 	common.Debugf("Opening %s...\n", *device)
 
-	//err := con.Connect()
-	//common.Checkf(err, "Unable to connect to device %s", *device)
+	err := con.Connect()
+	common.Checkf(err, "Unable to connect to device %s", *device)
 
 	mainLoop(con)
 

@@ -1,9 +1,11 @@
 package main
 
 import (
+	"bufio"
 	"github.com/omakoto/go-common/src/common"
-	"github.com/omakoto/raspberry-switch-control/nscontroller/js"
+	"github.com/omakoto/raspberry-switch-control/nscontroller"
 	"github.com/pborman/getopt/v2"
+	"os"
 )
 
 var (
@@ -21,14 +23,15 @@ func realMain() int {
 		common.DebugEnabled = true
 	}
 
-	js, err := js.NewJs(*device)
+	ji, err := nscontroller.NewJoystickInput(*device, nil)
 	common.Checke(err)
-	defer js.Close()
+	defer ji.Close()
 
-	for ;; {
-		_, err := js.Read()
-		common.Checke(err)
-	}
+	ji.Run()
+
+	// Wait for enter press
+	scanner := bufio.NewScanner(os.Stdin)
+	scanner.Scan()
 
 
 	return 0
