@@ -1,3 +1,5 @@
+// +build amd64,linux
+
 package js
 
 // Based on: https://gist.githubusercontent.com/rdb/8864666/raw/516178252bbe1cfe8067145b11223ee54c5d9698/js_linux.py
@@ -129,7 +131,7 @@ type Js struct {
 type JsEvent struct {
 	Timestamp time.Duration
 	Value     float64
-	Element 	*Element
+	Element   *Element
 }
 
 // NewJs creates a new Js instance with the given device file.
@@ -192,22 +194,24 @@ func NewJs(file string) (*Js, error) {
 		js.Buttons[i].Name = name
 	}
 
-	// Read the initial state.
-	common.Debug("Reading initial state...") // TODO select doesn't work for the initial events...?
-	var fdSet unix.FdSet
-	timeout := unix.Timeval{}
-	for {
-		fdSet.Bits[in.Fd()] = 1
-		s, err := unix.Select(1, &fdSet, nil, nil, &timeout) // TODO Use epoll
-		common.Check(err, "select")
-		if s != 1 {
-			break
-		}
-		_, err = js.Read()
-		if err != nil {
-			return nil, err
-		}
-	}
+	//// Read the initial state. -> not working
+	//common.Debug("Reading initial state...")
+	//timeout := unix.Timeval{}
+	//timeout.Sec = 1
+	//for {
+	//	fdSet := &unix.FdSet{}
+	//	fdSet.Bits[0] = 1 << in.Fd()
+	//	s, err := unix.Select(1, fdSet, nil, nil, &timeout)
+	//	common.Check(err, "select")
+	//	common.Debugf("select returned %d", s)
+	//	if s < 1 {
+	//		break
+	//	}
+	//	_, err = js.Read()
+	//	if err != nil {
+	//		return nil, err
+	//	}
+	//}
 	js.setInitialValues()
 
 	common.Debugf("%s ready to read", js.DevicePath)
