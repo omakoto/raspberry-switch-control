@@ -16,11 +16,7 @@ type JoystickInput struct {
 
 var _ Worker = (*JoystickInput)(nil)
 
-func NewJoystickInput(device string, dispatcher JoystickDispatcher, con Consumer) (*JoystickInput, error) {
-	js, err := js.NewJs(device)
-	if err != nil {
-		return nil, err
-	}
+func NewJoystickInput(js *js.Js, dispatcher JoystickDispatcher, con Consumer) (*JoystickInput, error) {
 	return &JoystickInput{js, dispatcher, con}, nil
 }
 
