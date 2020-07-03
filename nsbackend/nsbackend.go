@@ -17,7 +17,7 @@ const (
 
 var (
 	debug  = getopt.BoolLong("debug", 'd', "Enable debug output")
-	device = getopt.StringLong("device", 'f', "Specify device file (default: /dev/hidg0)")
+	device = getopt.StringLong("device", 'f', "/dev/hidg0","Specify device file")
 )
 
 func parseCommand(s string) (command string, arg float64, hasArg bool, err error) {
