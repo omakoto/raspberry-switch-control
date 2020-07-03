@@ -21,7 +21,7 @@ func mustGetDispatcher(js *js.Js) nscontroller.JoystickDispatcher {
 		return nscontroller.XBoxOneJoystickDispatcher
 	}
 	if strings.Contains(js.Name, "Nintendo Switch Pro Controller") {
-		return nscontroller.XBoxOneJoystickDispatcher
+		return nscontroller.NSProJoystickDispatcher
 	}
 	common.Fatalf("Unknown joystick: %s", js.Name)
 	return nil
