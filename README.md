@@ -27,8 +27,10 @@ Credit: This project heavily relies on https://github.com/mzyy94/nscon.
 
 1. Plug in the Raspberry Pi to the Switch. If using a Pi Zero, just connect via the micro-USB cable.
 
-1. Connect a joystick (currently, only the Switch Pro Controller or the X-Box One controller are
-supported) to a host PC.
+1. Connect a joystick (only the following ones are supported and tested) to a host PC.
+    1. Nintendo Pro controller
+    1. X-Box One controller
+    1. PS4 controller
 
 1. On the host PC, install the software:
 
