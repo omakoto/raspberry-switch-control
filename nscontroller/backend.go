@@ -23,7 +23,7 @@ func (b *BackendConsumer) Close() error {
 	return b.out.Close()
 }
 
-func (b *BackendConsumer) Intake() <-chan Event {
+func (b *BackendConsumer) Intake() chan<- Event {
 	return b.ch
 }
 
@@ -89,7 +89,7 @@ func (b *BackendConsumer) Run() {
 				command = "ry"
 			}
 
-			msg := fmt.Sprint("%s %f\n", command, ev.Value)
+			msg := fmt.Sprint(command, " ", ev.Value, "\n")
 
 			_, err := b.out.Write([]byte(msg))
 			common.Checkf(err, "Unable to write the message: %w", err)

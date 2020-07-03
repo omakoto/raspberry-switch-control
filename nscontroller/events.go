@@ -7,7 +7,9 @@ import (
 
 // Buttons and axes for Switch.
 const (
-	ActionButtonA = iota
+	ActionNone = iota
+
+	ActionButtonA
 	ActionButtonB
 	ActionButtonX
 	ActionButtonY
@@ -39,17 +41,16 @@ const (
 )
 
 type Action int;
-type Value float64;
 
 type Event struct {
 	Delay time.Duration
 	Action Action
-	Value Value
+	Value float64
 }
 
 type Consumer interface {
 	io.Closer
-	Intake() <-chan Event
+	Intake() chan<- Event
 }
 
 type Worker interface {

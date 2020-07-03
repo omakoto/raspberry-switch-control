@@ -27,7 +27,7 @@ func realMain() int {
 	common.Checke(err)
 	defer backend.Close()
 
-	joystick, err := nscontroller.NewJoystickInput(*device, nil, backend)
+	joystick, err := nscontroller.NewJoystickInput(*device, nscontroller.XBoxOneJoystickDispatcher, backend)
 	common.Checke(err)
 	defer joystick.Close()
 

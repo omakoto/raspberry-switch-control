@@ -77,8 +77,8 @@ var buttonNameMap = map[int]string{
 	0x130: "a", // switch B / xbox A
 	0x131: "b", // switch A / xbox B
 	0x132: "c",
-	0x133: "x",      // switch Y / xbox X
-	0x134: "y",      // switch X / xbox Y
+	0x133: "x",      // switch X / xbox X
+	0x134: "y",      // switch Y / xbox Y
 	0x135: "z",      // switch Capture
 	0x136: "tl",     // switch L / xbox L
 	0x137: "tr",     // switch R / xbox R
@@ -87,8 +87,8 @@ var buttonNameMap = map[int]string{
 	0x13a: "select", // switch - / xbox select
 	0x13b: "start",  // switch + / xbox start
 	0x13c: "mode",   // switch Home / xbox center
-	0x13d: "thumbl",
-	0x13e: "thumbr",
+	0x13d: "thumbl", // switch / xbox left stick press
+	0x13e: "thumbr", // switch / xbox right stick press
 
 	0x220: "dpad_up",
 	0x221: "dpad_down",
@@ -288,7 +288,7 @@ func (js *Js) Read() (JsEvent, error) {
 	case jsEventButton:
 		event.Element = &js.Buttons[oev.Number]
 		event.Value = 0
-		if event.Value != 0 {
+		if oev.Value != 0 {
 			event.Value = 1
 		}
 	}
