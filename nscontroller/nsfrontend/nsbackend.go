@@ -7,6 +7,7 @@ import (
 	"github.com/omakoto/raspberry-switch-control/nscontroller/js"
 	"github.com/pborman/getopt/v2"
 	"os"
+	"strings"
 )
 
 var (
@@ -14,6 +15,17 @@ var (
 	joystick = getopt.StringLong("joystick", 'j', "/dev/input/js0", "Specify joystick device file")
 	out = getopt.StringLong("out", 'o', "/dev/stdout", "Specify backend stdin")
 )
+
+func mustGetDispatcher(js *js.Js) nscontroller.JoystickDispatcher {
+	if strings.Contains(js.Name, "X-Box One") {
+		return nscontroller.XBoxOneJoystickDispatcher
+	}
+	if strings.Contains(js.Name, "Nintendo Switch Pro Controller") {
+		return nscontroller.XBoxOneJoystickDispatcher
+	}
+	common.Fatalf("Unknown joystick: %s", js.Name)
+	return nil
+}
 
 func realMain() int {
 	getopt.Parse()
@@ -32,7 +44,7 @@ func realMain() int {
 	common.Checke(err)
 	defer backend.Close()
 
-	joystick, err := nscontroller.NewJoystickInput(js, nscontroller.XBoxOneJoystickDispatcher, backend)
+	joystick, err := nscontroller.NewJoystickInput(js, mustGetDispatcher(js), backend)
 	common.Checke(err)
 	defer joystick.Close()
 

@@ -90,6 +90,6 @@ func XBoxOneJoystickDispatcher(ev *js.JsEvent, ch chan<- Event) {
 			down = 1
 		}
 		ch <- Event{-1, ActionButtonDpadUp, up}
-		ch <- Event{-1, ActionButtonDpadRight, down}
+		ch <- Event{-1, ActionButtonDpadDown, down}
 	}
 }

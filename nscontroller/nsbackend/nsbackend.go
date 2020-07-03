@@ -19,7 +19,7 @@ const (
 
 var (
 	debug  = getopt.BoolLong("debug", 'd', "Enable debug output")
-	device = getopt.StringLong("device", 'f', "/dev/hidg0","Specify device file")
+	device = getopt.StringLong("device", 'f', "/dev/hidg0", "Specify device file")
 )
 
 func parseCommand(s string) (command string, arg float64, hasArg bool, err error) {
@@ -77,6 +77,8 @@ func mainLoop(con *nscon.Controller) (err error) {
 			darg = 1
 		}
 		fdarg := float64(darg)
+
+		// Hmm, analog stick Y is inverted?
 
 		switch command {
 		case "a": // A
@@ -142,7 +144,7 @@ func mainLoop(con *nscon.Controller) (err error) {
 		case "lx": // Left stick X
 			con.Input.Stick.Left.X = arg
 		case "ly": // Left stick Y
-			con.Input.Stick.Left.Y = arg
+			con.Input.Stick.Left.Y = -arg
 
 			// Left stick alternative
 		case "lu":
@@ -150,7 +152,7 @@ func mainLoop(con *nscon.Controller) (err error) {
 			con.Input.Stick.Left.Y = -fdarg
 		case "ld":
 			con.Input.Stick.Left.X = 0
-			con.Input.Stick.Left.Y = fdarg
+			con.Input.Stick.Left.Y = -fdarg
 		case "ll":
 			con.Input.Stick.Left.X = -fdarg
 			con.Input.Stick.Left.Y = 0
@@ -159,29 +161,29 @@ func mainLoop(con *nscon.Controller) (err error) {
 			con.Input.Stick.Left.Y = 0
 		case "lur", "lru":
 			con.Input.Stick.Left.X = fdarg
-			con.Input.Stick.Left.Y = -fdarg
+			con.Input.Stick.Left.Y = fdarg
 		case "lul", "llu":
 			con.Input.Stick.Left.X = -fdarg
-			con.Input.Stick.Left.Y = -fdarg
+			con.Input.Stick.Left.Y = fdarg
 		case "ldr", "lrd":
 			con.Input.Stick.Left.X = fdarg
-			con.Input.Stick.Left.Y = fdarg
+			con.Input.Stick.Left.Y = -fdarg
 		case "ldl", "lld":
 			con.Input.Stick.Left.X = -fdarg
-			con.Input.Stick.Left.Y = fdarg
+			con.Input.Stick.Left.Y = -fdarg
 
 		case "rx": // Right stick X
 			con.Input.Stick.Right.X = arg
 		case "ry": // Right stick Y
-			con.Input.Stick.Right.Y = arg
+			con.Input.Stick.Right.Y = -arg
 
 			// Right stick alternative
 		case "ru":
 			con.Input.Stick.Right.X = 0
-			con.Input.Stick.Right.Y = -fdarg
+			con.Input.Stick.Right.Y = fdarg
 		case "rd":
 			con.Input.Stick.Right.X = 0
-			con.Input.Stick.Right.Y = fdarg
+			con.Input.Stick.Right.Y = -fdarg
 		case "rl":
 			con.Input.Stick.Right.X = -fdarg
 			con.Input.Stick.Right.Y = 0
@@ -190,16 +192,16 @@ func mainLoop(con *nscon.Controller) (err error) {
 			con.Input.Stick.Right.Y = 0
 		case "rur", "rru":
 			con.Input.Stick.Right.X = fdarg
-			con.Input.Stick.Right.Y = -fdarg
+			con.Input.Stick.Right.Y = fdarg
 		case "rul", "rlu":
 			con.Input.Stick.Right.X = -fdarg
-			con.Input.Stick.Right.Y = -fdarg
+			con.Input.Stick.Right.Y = fdarg
 		case "rdr", "rrd":
 			con.Input.Stick.Right.X = fdarg
-			con.Input.Stick.Right.Y = fdarg
+			con.Input.Stick.Right.Y = -fdarg
 		case "rdl", "rld":
 			con.Input.Stick.Right.X = -fdarg
-			con.Input.Stick.Right.Y = fdarg
+			con.Input.Stick.Right.Y = -fdarg
 
 		default:
 			common.Warnf("Unknown command: %#v\n", command)
