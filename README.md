@@ -21,7 +21,7 @@ Credit: This project heavily relies on https://github.com/mzyy94/nscon.
 
 1. Create the USB gadget. Do it once after every reboot.
 
-        sudo go/src/github.com/omakoto/raspberry-switch-control/scripts/switch-controller-gadget
+        sudo $HOME/go/src/github.com/omakoto/raspberry-switch-control/scripts/switch-controller-gadget
 
 ## Control Nintendo Switch with Joystick on a PC (via Raspberry Pi)
 
@@ -40,7 +40,9 @@ Credit: This project heavily relies on https://github.com/mzyy94/nscon.
 
         nsfrontend -j /dev/input/js0 -o >(ssh pi@$PI_ADDRESS go/bin/nsbackend) 
 
-1. Press `[enter]` on console to finish.
+1. Press `[enter]` on the console to finish.
+
+
 
 ## TODOs
 

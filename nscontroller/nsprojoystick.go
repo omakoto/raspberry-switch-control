@@ -2,7 +2,7 @@ package nscontroller
 
 import "github.com/omakoto/raspberry-switch-control/nscontroller/js"
 
-// XBoxOneJoystickDispatcher takes an JsEvent and dispatches.
+// NSProJoystickDispatcher is a dispatcher for the Switch Pro controller.
 func NSProJoystickDispatcher(ev *js.JsEvent, ch chan<- Event) {
 	var action Action = ActionNone
 
