@@ -98,27 +98,38 @@ var buttonNameMap = map[int]string{
 	0x2c3: "dpad_down",
 }
 
+// Element represents a single axis or button.
+type Element struct {
+	// Number is the number given to the axis/button.
+	Number int
+	// Name is the name of the axis/button.
+	Name string
+	// Name is the last known value of the axis/button in the range of [-1..1].
+	Value float64
+	// Name is the initial value of the axis/button in the range of [-1..1].
+	InitialValue float64
+}
+
+func (e *Element) setInitialValue() {
+	e.InitialValue = e.InitialValue
+}
+
 // Js represents a joystick input device.
 type Js struct {
-	DevicePath   string
-	Name         string
-	NumAxes      int
-	NumButtons   int
-	AxisCodes    []int
-	AxisNames    []string
-	AxisValues   []float64
-	ButtonCodes  []int
-	ButtonNames  []string
-	ButtonValues []float64
-	in           io.ReadCloser
+	DevicePath string
+	Name       string
+	NumAxes    int
+	NumButtons int
+	Axes       []Element
+	Buttons    []Element
+	in         io.ReadCloser
 }
 
 // JsEvent is a single joystick event.
 type JsEvent struct {
 	Timestamp time.Duration
-	EventCode int
-	EventName string
 	Value     float64
+	Element 	*Element
 }
 
 // NewJs creates a new Js instance with the given device file.
@@ -155,16 +166,14 @@ func NewJs(file string) (*Js, error) {
 	if errno != 0 {
 		return nil, fmt.Errorf("unable to get axis map of %#v: %w", file, errno)
 	}
-	js.AxisCodes = make([]int, js.NumAxes)
-	js.AxisNames = make([]string, js.NumAxes)
-	js.AxisValues = make([]float64, js.NumAxes)
+	js.Axes = make([]Element, js.NumAxes)
 	for i, v := range axisCodes {
-		js.AxisCodes[i] = int(v)
+		js.Axes[i].Number = int(v)
 		name, found := axisNameMap[int(v)]
 		if !found {
 			name = fmt.Sprintf("unknown:0x%x", v)
 		}
-		js.AxisNames[i] = name
+		js.Axes[i].Name = name
 	}
 
 	// Get the button names.
@@ -173,23 +182,21 @@ func NewJs(file string) (*Js, error) {
 	if errno != 0 {
 		return nil, fmt.Errorf("unable to get button map of %#v: %w", file, errno)
 	}
-	js.ButtonCodes = make([]int, js.NumButtons)
-	js.ButtonNames = make([]string, js.NumButtons)
-	js.ButtonValues = make([]float64, js.NumButtons)
+	js.Buttons = make([]Element, js.NumButtons)
 	for i, v := range buttonCodes {
-		js.ButtonCodes[i] = int(v)
+		js.Buttons[i].Number = int(v)
 		name, found := buttonNameMap[int(v)]
 		if !found {
 			name = fmt.Sprintf("unknown:0x%x", v)
 		}
-		js.ButtonNames[i] = name
+		js.Buttons[i].Name = name
 	}
 
 	// Read the initial state.
 	common.Debug("Reading initial state...")
 	var fdSet unix.FdSet
 	timeout := unix.Timeval{}
-	for ;; {
+	for {
 		fdSet.Bits[in.Fd()] = 1
 		s, err := unix.Select(1, &fdSet, nil, nil, &timeout) // TODO Use epoll
 		common.Check(err, "select")
@@ -240,34 +247,31 @@ type osJsEvent struct {
 }
 
 func (js *Js) Read() (JsEvent, error) {
-	ret := JsEvent{}
+	event := JsEvent{}
 
 	// Read the OS event.
 	var oev osJsEvent
 	err := binary.Read(js.in, binary.LittleEndian, &oev)
 	if err != nil {
-		return ret, fmt.Errorf("unable to read from %#v: %w", js.DevicePath, err)
+		return event, fmt.Errorf("unable to read from %#v: %w", js.DevicePath, err)
 	}
 	common.Dump("OsEvent:", &oev)
 
 	// Convert to the result.
-	ret.Timestamp = time.Millisecond * time.Duration(oev.Time)
-	switch oev.EventType &^ jsEventInit {
-	case jsEventButton:
-		ret.EventCode = js.ButtonCodes[oev.Number]
-		ret.EventName = js.ButtonNames[oev.Number]
-		ret.Value = 0
-		if oev.Value != 0 {
-			ret.Value = 1
-		}
-		js.ButtonValues[oev.Number] = ret.Value
-	case jsEventAxis:
-		ret.EventCode = js.AxisCodes[oev.Number]
-		ret.EventName = js.AxisNames[oev.Number]
-		ret.Value = float64(oev.Value) / 32767.0
-		js.AxisValues[oev.Number] = ret.Value
-	}
-	common.Dump("Event:", &ret)
+	event.Timestamp = time.Millisecond * time.Duration(oev.Time)
 
-	return ret, nil
+	switch oev.EventType &^ jsEventInit {
+	case jsEventAxis:
+		event.Element = &js.Axes[oev.Number]
+		event.Value = float64(oev.Value) / 32767.0
+	case jsEventButton:
+		event.Element = &js.Buttons[oev.Number]
+		event.Value = 0
+		if oev.Value != 0 {
+			event.Value = 1
+		}
+	}
+	common.Dump("Event:", &event)
+
+	return event, nil
 }
