@@ -136,6 +136,22 @@ type JsEvent struct {
 	Element   *Element
 }
 
+const (
+	jsEventButton = 0x01 // button pressed/released
+	jsEventAxis   = 0x02 // joystick moved
+	jsEventInit   = 0x80 // initial state of device
+
+	jsiocgnameBase = 0x80006a13
+	jsiocgaxes     = 0x80016a11
+	jsiocgbuttons  = 0x80016a12
+	jsiocgaxmap    = 0x80406a32
+	jsiocgbtnmap   = 0x80406a34
+)
+
+func jsiocgname(length int) uintptr {
+	return uintptr(jsiocgnameBase) + uintptr(0x10000) * uintptr(length)
+}
+
 // NewJs creates a new Js instance with the given device file.
 func NewJs(device string) (*Js, error) {
 	common.Debugf("Opening %s ...", device)
@@ -158,7 +174,7 @@ func NewJs(device string) (*Js, error) {
 
 	// Get device name.
 	nameBuf := make([]byte, 256, 256)
-	_, _, errno := unix.Syscall(unix.SYS_IOCTL, in.Fd(), uintptr(jsiocgnameBase+(0x10000*len(nameBuf))), uintptr(unsafe.Pointer(&nameBuf[0])))
+	_, _, errno := unix.Syscall(unix.SYS_IOCTL, in.Fd(), jsiocgname(len(nameBuf)), uintptr(unsafe.Pointer(&nameBuf[0])))
 	if errno != 0 {
 		return nil, fmt.Errorf("unable to get device name of %#v: %w", device, errno)
 	}
@@ -239,18 +255,6 @@ func (js *Js) Close() error {
 	js.in = nil
 	return err
 }
-
-const (
-	jsEventButton = 0x01 // button pressed/released
-	jsEventAxis   = 0x02 // joystick moved
-	jsEventInit   = 0x80 // initial state of device
-
-	jsiocgnameBase = 0x80006a13
-	jsiocgaxes     = 0x80016a11
-	jsiocgbuttons  = 0x80016a12
-	jsiocgaxmap    = 0x80406a32
-	jsiocgbtnmap   = 0x80406a34
-)
 
 // osJsEvent is a single event from the joystick device.
 type osJsEvent struct {
