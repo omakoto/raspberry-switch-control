@@ -43,15 +43,10 @@ const (
 type Action int
 
 type Event struct {
-	Delay  time.Duration
-	Action Action
-	Value  float64
+	timestamp time.Duration
+	Action    Action
+	Value     float64
 }
-
-//type Consumer interface {
-//	io.Closer
-//	Intake() chan<- Event
-//}
 
 type Consumer func(ev *Event)
 

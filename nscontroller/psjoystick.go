@@ -3,12 +3,12 @@ package nscontroller
 import "github.com/omakoto/raspberry-switch-control/nscontroller/js"
 
 // PsJoystickDispatcher is a dispatcher for the PS controller. (Only tested with a PS4 controller.)
-func PsJoystickDispatcher(ev *js.JoystickEvent, con Consumer) {
+func PsJoystickDispatcher(jev *js.JoystickEvent, con Consumer) {
 	var action Action = ActionNone
 
-	value := ev.Value
+	value := jev.Value
 
-	switch ev.Element.Number {
+	switch jev.Element.Number {
 	case 0x00: // "x"
 		action = ActionAxisLX
 	case 0x01: // "y"
@@ -49,12 +49,12 @@ func PsJoystickDispatcher(ev *js.JoystickEvent, con Consumer) {
 		action = ActionButtonRightStickPress
 	}
 	if action != ActionNone {
-		con(&Event{-1, action, value})
+		con(&Event{jev.Timestamp, action, value})
 		return
 	}
 
 	// D-pad requires a special handling
-	switch ev.Element.Number {
+	switch jev.Element.Number {
 	case 0x10: // "hat0x", // switch/xbox D-pad
 		left := 0.0
 		right := 0.0
@@ -65,8 +65,8 @@ func PsJoystickDispatcher(ev *js.JoystickEvent, con Consumer) {
 			left = 0
 			right = 1
 		}
-		con(&Event{-1, ActionButtonDpadLeft, left})
-		con(&Event{-1, ActionButtonDpadRight, right})
+		con(&Event{jev.Timestamp, ActionButtonDpadLeft, left})
+		con(&Event{jev.Timestamp, ActionButtonDpadRight, right})
 	case 0x11: // "hat0y", // switch/xbox D-pad
 		up := 0.0
 		down := 0.0
@@ -77,7 +77,7 @@ func PsJoystickDispatcher(ev *js.JoystickEvent, con Consumer) {
 			up = 0
 			down = 1
 		}
-		con(&Event{-1, ActionButtonDpadUp, up})
-		con(&Event{-1, ActionButtonDpadDown, down})
+		con(&Event{jev.Timestamp, ActionButtonDpadUp, up})
+		con(&Event{jev.Timestamp, ActionButtonDpadDown, down})
 	}
 }
