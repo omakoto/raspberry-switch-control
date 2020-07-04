@@ -9,19 +9,33 @@ import (
 
 var (
 	tickInterval = getopt.IntLong("tick", 't', 10, "Tick interval in milliseconds")
+	defaultAutofireInterval = getopt.IntLong("default-autofire-interval", 'i', 16, "Default autofire interval in milliseconds")
 )
+
+type buttonState struct {
+	// interval is the autofire interval for each button
+	interval time.Duration
+
+	// autoLastTimestamp is the timestamp of the last on or off autofire event.
+	autoLastTimestamp time.Duration
+
+	// autoNextTimestamp is the timestamp of the next on or off autofire event.
+	autoNextTimestamp time.Duration
+
+	// realButtonPressed is whether the button is actually pressed or not.
+	realButtonPressed bool
+
+	// autofireEnabled is whether autofire is enabled or not.
+	autofireEnabled bool
+
+	// lastEvent is the last event sent to the next consumer.
+	lastEvent Event
+}
 
 type AutoFirer struct {
 	syncer *utils.Synchronized
-
-	next Consumer
-
-	// intervals is the autofire interval for each button
-	intervals []time.Duration
-
-	lastTimestamp []time.Duration
-	nextTimestamp []time.Duration
-
+	next   Consumer
+	states []buttonState
 	ticker *time.Ticker
 	stop   chan bool
 }
@@ -32,9 +46,7 @@ func NewAutoFirer(next Consumer) *AutoFirer {
 	return &AutoFirer{
 		utils.NewSynchronized(),
 		next,
-		make([]time.Duration, NumActionButton),
-		make([]time.Duration, NumActionButton),
-		make([]time.Duration, NumActionButton),
+		make([]buttonState, NumActionButtons),
 		nil,
 		nil,
 	}
@@ -85,13 +97,39 @@ func (af *AutoFirer) Close() error {
 }
 
 func (af *AutoFirer) SetFireInterval(a Action, interval time.Duration) {
+	common.OrFatalf(interval >= 0, "interval must be >= 0 but was: %d", interval)
 	af.syncer.Run(func() {
-		af.intervals[a] = interval
+		af.states[a].interval = interval
 	})
+}
+
+func (af *AutoFirer) updateStateLocked(ev *Event) {
+	bs := af.states[ev.Action]
+	pressed := ev.Value == 1
+
+	if bs.realButtonPressed == pressed {
+		return // Button state hasn't changed; ignore.
+	}
+
+	bs.realButtonPressed = pressed
+
+	if bs.interval == 0 {
+		// Autofire off
+		af.next(ev)
+		bs.lastEvent = *ev
+	} else {
+		// Autofire enabled -- update the autofire on/off state.
+		bs.autofireEnabled = pressed
+	}
 }
 
 func (af *AutoFirer) Consume(ev *Event) {
 	af.syncer.Run(func() {
-		af.next(ev)
+		if ev.Action < NumActionButtons {
+			af.updateStateLocked(ev)
+		} else {
+			// Just forward any axis events.
+			af.next(ev)
+		}
 	})
 }

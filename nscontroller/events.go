@@ -33,8 +33,8 @@ const (
 	ActionButtonLeftStickPress
 	ActionButtonRightStickPress
 
-	// NumActionButton is the number of buttons
-	NumActionButton
+	// NumActionButtons is the number of buttons
+	NumActionButtons
 
 	ActionAxisLX
 	ActionAxisLY
