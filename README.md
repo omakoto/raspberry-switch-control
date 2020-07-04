@@ -17,7 +17,7 @@ Credit: This project heavily relies on https://github.com/mzyy94/nscon.
 
 1. Install on the raspberry pi
 
-        go get -v -u -t github.com/omakoto/raspberry-switch-control/nscontroller/...
+        go get -v -u -t github.com/omakoto/raspberry-switch-control/nscontroller/cmd/...
 
 1. Create the USB gadget. Do it once after every reboot.
 
@@ -34,7 +34,7 @@ Credit: This project heavily relies on https://github.com/mzyy94/nscon.
 
 1. On the host PC, install the software:
 
-        go get -v -u -t github.com/omakoto/raspberry-switch-control/nscontroller/...
+        go get -v -u -t github.com/omakoto/raspberry-switch-control/nscontroller/cmd/...
 
 1. On the host PC, run it:
 
