@@ -3,7 +3,7 @@ package utils
 import "sync"
 
 type Synchronized struct {
-	mu *sync.Mutex
+	Mutex *sync.Mutex
 }
 
 func NewSynchronized() *Synchronized {
@@ -11,8 +11,15 @@ func NewSynchronized() *Synchronized {
 }
 
 func (s *Synchronized) Run(f func()) {
-	s.mu.Lock()
-	defer s.mu.Unlock()
+	s.Mutex.Lock()
+	defer s.Mutex.Unlock()
 
 	f()
+}
+
+func (s *Synchronized) RunForValue(f func() interface{}) interface{} {
+	s.Mutex.Lock()
+	defer s.Mutex.Unlock()
+
+	return f()
 }

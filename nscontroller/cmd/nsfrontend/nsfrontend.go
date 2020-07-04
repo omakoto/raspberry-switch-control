@@ -10,10 +10,13 @@ import (
 	"strings"
 )
 
+
 var (
 	debug    = getopt.BoolLong("debug", 'd', "Enable debug output")
 	joystick = getopt.StringLong("joystick", 'j', "/dev/input/js0", "Specify joystick device file")
 	out      = getopt.StringLong("out", 'o', "/dev/stdout", "Specify backend stdin")
+
+	myName = common.MustGetBinName()
 )
 
 func mustGetDispatcher(js *js.Js) nscontroller.JoystickDispatcher {
@@ -47,15 +50,21 @@ func realMain() int {
 	common.Checke(err)
 	defer backend.Close()
 
-	joystick, err := nscontroller.NewJoystickInput(js, mustGetDispatcher(js), backend.Consume)
+	autoFirer := nscontroller.NewAutoFirer(backend.Consume)
+	defer autoFirer.Close()
+
+	joystick, err := nscontroller.NewJoystickInput(js, mustGetDispatcher(js), autoFirer.Consume)
 	common.Checke(err)
 	defer joystick.Close()
 
+	autoFirer.Run()
 	joystick.Run()
 
 	// Wait for enter press
 	scanner := bufio.NewScanner(os.Stdin)
 	scanner.Scan()
+
+	common.Debugf("%s finishing", myName)
 
 	return 0
 }
