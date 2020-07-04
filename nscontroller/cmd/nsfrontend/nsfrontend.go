@@ -10,7 +10,6 @@ import (
 	"strings"
 )
 
-
 var (
 	debug    = getopt.BoolLong("debug", 'd', "Enable debug output")
 	joystick = getopt.StringLong("joystick", 'j', "/dev/input/js0", "Specify joystick device file")
@@ -53,8 +52,8 @@ func realMain() int {
 	autoFirer := nscontroller.NewAutoFirer(backend.Consume)
 	defer autoFirer.Close()
 
-	autoFirer.SetFireInterval(nscontroller.ActionButtonX, 16)
-	autoFirer.SetFireInterval(nscontroller.ActionButtonY, 16)
+	autoFirer.SetAutofire(nscontroller.ActionButtonX, nscontroller.AutofireModeNormal, 16)
+	autoFirer.SetAutofire(nscontroller.ActionButtonY, nscontroller.AutofireModeNormal, 16)
 
 	joystick, err := nscontroller.NewJoystickInput(js, mustGetDispatcher(js), autoFirer.Consume)
 	common.Checke(err)

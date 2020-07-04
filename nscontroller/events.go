@@ -5,9 +5,11 @@ import (
 	"time"
 )
 
+type Action int
+
 // Buttons and axes for Switch.
 const (
-	ActionNone = iota
+	ActionNone = Action(iota)
 
 	ActionButtonA
 	ActionButtonB
@@ -43,8 +45,6 @@ const (
 	ActionAxisRY
 )
 
-type Action int
-
 type Event struct {
 	Timestamp time.Time
 	Action    Action
@@ -56,4 +56,15 @@ type Consumer func(ev *Event)
 type Worker interface {
 	io.Closer
 	Run()
+}
+
+func BoolToValue(pressed bool) float64 {
+	if pressed {
+		return 1
+	}
+	return 0
+}
+
+func ValueToBool(v float64) bool {
+	return v == 1
 }
