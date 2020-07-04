@@ -35,6 +35,15 @@ const (
 	ActionButtonLeftStickPress
 	ActionButtonRightStickPress
 
+	// for synthetic events
+	ActionButtonSynth1
+	// for synthetic events
+	ActionButtonSynth2
+	// for synthetic events
+	ActionButtonSynth3
+	// for synthetic events
+	ActionButtonSynth4
+
 	ActionAxisLX
 	ActionAxisLY
 
