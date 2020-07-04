@@ -35,20 +35,37 @@ const (
 	ActionButtonLeftStickPress
 	ActionButtonRightStickPress
 
-	// NumActionButtons is the number of buttons
-	NumActionButtons
-
 	ActionAxisLX
 	ActionAxisLY
 
 	ActionAxisRX
 	ActionAxisRY
+
+	ActionLast
+
+	ActionButtonStart = ActionButtonA
+	ActionButtonLast  = ActionAxisLX
+
+	ActionAxisStart = ActionAxisLX
+	ActionAxisLast  = ActionLast
 )
+
+func (a Action) isButton() bool {
+	return ActionButtonStart <= a && a < ActionButtonLast
+}
+
+func (a Action) isAxis() bool {
+	return ActionAxisStart <= a && a < ActionAxisLast
+}
 
 type Event struct {
 	Timestamp time.Time
 	Action    Action
 	Value     float64
+}
+
+func (ev *Event) pressed() bool {
+	return ev.Value == 1
 }
 
 type Consumer func(ev *Event)
