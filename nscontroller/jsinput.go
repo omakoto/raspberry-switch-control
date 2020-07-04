@@ -11,13 +11,13 @@ type JoystickDispatcher func(ev *js.JoystickEvent, con Consumer)
 type JoystickInput struct {
 	js         *js.Js
 	dispatcher JoystickDispatcher
-	con        Consumer
+	next       Consumer
 }
 
 var _ Worker = (*JoystickInput)(nil)
 
-func NewJoystickInput(js *js.Js, dispatcher JoystickDispatcher, con Consumer) (*JoystickInput, error) {
-	return &JoystickInput{js, dispatcher, con}, nil
+func NewJoystickInput(js *js.Js, dispatcher JoystickDispatcher, next Consumer) (*JoystickInput, error) {
+	return &JoystickInput{js, dispatcher, next}, nil
 }
 
 func (j *JoystickInput) Close() error {
@@ -35,7 +35,7 @@ func (j *JoystickInput) Run() {
 			common.Checke(err)
 			common.Debugf("Joystick input=%x", ev.Element.Number)
 
-			j.dispatcher(&ev, j.con)
+			j.dispatcher(&ev, j.next)
 		}
 	}()
 }
