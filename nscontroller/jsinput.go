@@ -6,7 +6,7 @@ import (
 	"io"
 )
 
-type JoystickDispatcher func(ev *js.JsEvent, ch chan<- Event)
+type JoystickDispatcher func(ev *js.JoystickEvent, ch chan<- Event)
 
 type JoystickInput struct {
 	js         *js.Js

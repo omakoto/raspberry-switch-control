@@ -3,7 +3,7 @@ package nscontroller
 import "github.com/omakoto/raspberry-switch-control/nscontroller/js"
 
 // NSProJoystickDispatcher is a dispatcher for the Switch Pro controller.
-func NSProJoystickDispatcher(ev *js.JsEvent, ch chan<- Event) {
+func NSProJoystickDispatcher(ev *js.JoystickEvent, ch chan<- Event) {
 	var action Action = ActionNone
 
 	value := ev.Value

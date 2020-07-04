@@ -1,5 +1,6 @@
 // +build linux
 
+// Package js is a simple API to interact with the joystick (on Linux).
 package js
 
 // Based on: https://gist.githubusercontent.com/rdb/8864666/raw/516178252bbe1cfe8067145b11223ee54c5d9698/js_linux.py
@@ -110,12 +111,12 @@ type Element struct {
 	Name string
 	// Name is the last known value of the axis/button in the range of [-1..1].
 	Value float64
-	// Name is the initial value of the axis/button in the range of [-1..1].
+	// Name is the initial value of the axis/button in the range of [-1..1]. (NOT IMPLEMENTED YET)
 	InitialValue float64
 }
 
 func (e *Element) setInitialValue() {
-	e.InitialValue = e.InitialValue
+	e.InitialValue = e.Value
 }
 
 // Js represents a joystick input device.
@@ -129,8 +130,8 @@ type Js struct {
 	in         io.ReadCloser
 }
 
-// JsEvent is a single joystick event.
-type JsEvent struct {
+// JoystickEvent is a single joystick event.
+type JoystickEvent struct {
 	Timestamp time.Duration
 	Value     float64
 	Element   *Element
@@ -149,7 +150,7 @@ const (
 )
 
 func jsiocgname(length int) uintptr {
-	return uintptr(jsiocgnameBase) + uintptr(0x10000) * uintptr(length)
+	return uintptr(jsiocgnameBase) + uintptr(0x10000)*uintptr(length)
 }
 
 // NewJs creates a new Js instance with the given device file.
@@ -173,7 +174,7 @@ func NewJs(device string) (*Js, error) {
 	}
 
 	// Get device name.
-	nameBuf := make([]byte, 256, 256)
+	nameBuf := make([]byte, 256)
 	_, _, errno := unix.Syscall(unix.SYS_IOCTL, in.Fd(), jsiocgname(len(nameBuf)), uintptr(unsafe.Pointer(&nameBuf[0])))
 	if errno != 0 {
 		return nil, fmt.Errorf("unable to get device name of %#v: %w", device, errno)
@@ -181,7 +182,7 @@ func NewJs(device string) (*Js, error) {
 	js.Name = string(bytes.TrimRight(nameBuf, "\000"))
 
 	// Get the axis names.
-	axisCodes := make([]byte, js.NumAxes, js.NumAxes)
+	axisCodes := make([]byte, js.NumAxes)
 	_, _, errno = unix.Syscall(unix.SYS_IOCTL, in.Fd(), uintptr(jsiocgaxmap), uintptr(unsafe.Pointer(&axisCodes[0])))
 	if errno != 0 {
 		return nil, fmt.Errorf("unable to get axis map of %#v: %w", device, errno)
@@ -197,7 +198,7 @@ func NewJs(device string) (*Js, error) {
 	}
 
 	// Get the button names.
-	buttonCodes := make([]uint16, js.NumButtons, js.NumButtons)
+	buttonCodes := make([]uint16, js.NumButtons)
 	_, _, errno = unix.Syscall(unix.SYS_IOCTL, in.Fd(), uintptr(jsiocgbtnmap), uintptr(unsafe.Pointer(&buttonCodes[0])))
 	if errno != 0 {
 		return nil, fmt.Errorf("unable to get button map of %#v: %w", device, errno)
@@ -268,8 +269,8 @@ type osJsEvent struct {
 	Number uint8
 }
 
-func (js *Js) Read() (JsEvent, error) {
-	event := JsEvent{}
+func (js *Js) Read() (JoystickEvent, error) {
+	event := JoystickEvent{}
 
 	// Read the OS event.
 	var oev osJsEvent

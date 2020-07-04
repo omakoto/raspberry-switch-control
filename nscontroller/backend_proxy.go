@@ -6,28 +6,28 @@ import (
 	"io"
 )
 
-type BackendConsumer struct {
+type BackendProxy struct {
 	out io.WriteCloser
 	ch  chan Event
 }
 
-var _ Consumer = (*BackendConsumer)(nil)
-var _ Worker = (*BackendConsumer)(nil)
+var _ Consumer = (*BackendProxy)(nil)
+var _ Worker = (*BackendProxy)(nil)
 
-func NewBackendConsumer(out io.WriteCloser) (*BackendConsumer, error) {
-	return &BackendConsumer{out, make(chan Event)}, nil
+func NewBackendConsumer(out io.WriteCloser) (*BackendProxy, error) {
+	return &BackendProxy{out, make(chan Event)}, nil
 }
 
-func (b *BackendConsumer) Close() error {
+func (b *BackendProxy) Close() error {
 	close(b.ch)
 	return b.out.Close()
 }
 
-func (b *BackendConsumer) Intake() chan<- Event {
+func (b *BackendProxy) Intake() chan<- Event {
 	return b.ch
 }
 
-func (b *BackendConsumer) Run() {
+func (b *BackendProxy) Run() {
 
 	go func() {
 		for {
@@ -92,7 +92,7 @@ func (b *BackendConsumer) Run() {
 			msg := fmt.Sprint(command, " ", ev.Value, "\n")
 
 			_, err := b.out.Write([]byte(msg))
-			common.Checkf(err, "Unable to write the message: %w", err)
+			common.Checkf(err, "Unable to write the message")
 		}
 	}()
 }

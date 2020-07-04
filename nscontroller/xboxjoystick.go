@@ -7,13 +7,12 @@ const xboxTriggerThreshold = -0.8
 func xboxTriggerToButton(v float64) float64 {
 	if v < xboxTriggerThreshold {
 		return 0
-	} else {
-		return 1
 	}
+	return 1
 }
 
-// XBoxOneJoystickDispatcher takes an JsEvent and dispatches.
-func XBoxOneJoystickDispatcher(ev *js.JsEvent, ch chan<- Event) {
+// XBoxOneJoystickDispatcher takes an JoystickEvent and dispatches.
+func XBoxOneJoystickDispatcher(ev *js.JoystickEvent, ch chan<- Event) {
 	var action Action = ActionNone
 
 	value := ev.Value

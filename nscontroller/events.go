@@ -40,12 +40,12 @@ const (
 	ActionAxisRY
 )
 
-type Action int;
+type Action int
 
 type Event struct {
-	Delay time.Duration
+	Delay  time.Duration
 	Action Action
-	Value float64
+	Value  float64
 }
 
 type Consumer interface {

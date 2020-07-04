@@ -3,7 +3,7 @@ package nscontroller
 import "github.com/omakoto/raspberry-switch-control/nscontroller/js"
 
 // PsJoystickDispatcher is a dispatcher for the PS controller. (Only tested with a PS4 controller.)
-func PsJoystickDispatcher(ev *js.JsEvent, ch chan<- Event) {
+func PsJoystickDispatcher(ev *js.JoystickEvent, ch chan<- Event) {
 	var action Action = ActionNone
 
 	value := ev.Value
@@ -35,7 +35,6 @@ func PsJoystickDispatcher(ev *js.JsEvent, ch chan<- Event) {
 		action = ActionButtonLZ
 	case 0x139: // "tr2"
 		action = ActionButtonRZ
-
 
 	case 0x13a: // "select", // switch - / xbox select
 		action = ActionButtonMinus
