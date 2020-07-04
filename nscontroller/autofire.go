@@ -9,27 +9,23 @@ import (
 
 var (
 	tickInterval = getopt.IntLong("tick", 't', 10, "Tick interval in milliseconds")
-	defaultAutofireInterval = getopt.IntLong("default-autofire-interval", 'i', 16, "Default autofire interval in milliseconds")
 )
 
 type buttonState struct {
-	// interval is the autofire interval for each button
+	// interval is the autofire interval for each button. if 0, autofire is not activated.
 	interval time.Duration
 
 	// autoLastTimestamp is the timestamp of the last on or off autofire event.
-	autoLastTimestamp time.Duration
-
-	// autoNextTimestamp is the timestamp of the next on or off autofire event.
-	autoNextTimestamp time.Duration
+	autoLastTimestamp time.Time
 
 	// realButtonPressed is whether the button is actually pressed or not.
 	realButtonPressed bool
 
-	// autofireEnabled is whether autofire is enabled or not.
-	autofireEnabled bool
+	// autofireEnabled is whether autofire is on (so events will be continuously produced) or off.
+	autofireOn bool
 
-	// lastEvent is the last event sent to the next consumer.
-	lastEvent Event
+	// lastValue is the last reported value to the next consumer.
+	lastValue float64
 }
 
 type AutoFirer struct {
@@ -70,7 +66,7 @@ func (af *AutoFirer) Run() {
 			for {
 				select {
 				case <-ticker.C:
-					common.Debug("AutoFirer tick")
+					af.tick()
 				case <-stop:
 					break loop
 				}
@@ -104,7 +100,7 @@ func (af *AutoFirer) SetFireInterval(a Action, interval time.Duration) {
 }
 
 func (af *AutoFirer) updateStateLocked(ev *Event) {
-	bs := af.states[ev.Action]
+	bs := &af.states[ev.Action]
 	pressed := ev.Value == 1
 
 	if bs.realButtonPressed == pressed {
@@ -113,13 +109,15 @@ func (af *AutoFirer) updateStateLocked(ev *Event) {
 
 	bs.realButtonPressed = pressed
 
-	if bs.interval == 0 {
-		// Autofire off
-		af.next(ev)
-		bs.lastEvent = *ev
-	} else {
-		// Autofire enabled -- update the autofire on/off state.
-		bs.autofireEnabled = pressed
+	af.next(ev)
+	bs.lastValue = ev.Value
+	if bs.interval > 0 {
+		// Autofire activated -- update the autofire on/off state.
+		bs.autofireOn = pressed
+		if pressed {
+			bs.autoLastTimestamp = ev.Timestamp
+			bs.lastValue = 1
+		}
 	}
 }
 
@@ -132,4 +130,28 @@ func (af *AutoFirer) Consume(ev *Event) {
 			af.next(ev)
 		}
 	})
+}
+
+func (af *AutoFirer) tick() {
+	common.Debug("AutoFirer tick")
+
+	now := time.Now()
+	for a := 0; a < NumActionButtons; a++ {
+		bs := &af.states[a]
+
+		if bs.interval == 0 || !bs.autofireOn {
+			continue
+		}
+		nextTimestamp := bs.autoLastTimestamp.Add(bs.interval)
+		if nextTimestamp.After(now) {
+			return
+		}
+
+		// Synthesis an event.
+		ev := Event{Timestamp: nextTimestamp, Action: Action(a), Value: 1 - bs.lastValue}
+		af.next(&ev)
+
+		bs.autoLastTimestamp = ev.Timestamp
+		bs.lastValue = ev.Value
+	}
 }

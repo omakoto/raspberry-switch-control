@@ -46,7 +46,7 @@ const (
 type Action int
 
 type Event struct {
-	timestamp time.Duration
+	Timestamp time.Time
 	Action    Action
 	Value     float64
 }

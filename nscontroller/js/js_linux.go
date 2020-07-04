@@ -132,7 +132,7 @@ type Js struct {
 
 // JoystickEvent is a single joystick event.
 type JoystickEvent struct {
-	Timestamp time.Duration
+	Timestamp time.Time
 	Value     float64
 	Element   *Element
 }
@@ -284,7 +284,7 @@ func (js *Js) Read() (JoystickEvent, error) {
 	common.Dump("OsEvent:", &oev)
 
 	// Convert to the result.
-	event.Timestamp = time.Millisecond * time.Duration(oev.Time)
+	event.Timestamp = time.Now()
 
 	switch oev.EventType &^ jsEventInit {
 	case jsEventAxis:

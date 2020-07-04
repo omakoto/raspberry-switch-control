@@ -53,6 +53,9 @@ func realMain() int {
 	autoFirer := nscontroller.NewAutoFirer(backend.Consume)
 	defer autoFirer.Close()
 
+	autoFirer.SetFireInterval(nscontroller.ActionButtonX, 16)
+	autoFirer.SetFireInterval(nscontroller.ActionButtonY, 16)
+
 	joystick, err := nscontroller.NewJoystickInput(js, mustGetDispatcher(js), autoFirer.Consume)
 	common.Checke(err)
 	defer joystick.Close()
