@@ -12,7 +12,7 @@ func xboxTriggerToButton(v float64) float64 {
 }
 
 // XBoxOneJoystickDispatcher takes an JoystickEvent and dispatches.
-func XBoxOneJoystickDispatcher(ev *js.JoystickEvent, ch chan<- Event) {
+func XBoxOneJoystickDispatcher(ev *js.JoystickEvent, con Consumer) {
 	var action Action = ActionNone
 
 	value := ev.Value
@@ -60,7 +60,7 @@ func XBoxOneJoystickDispatcher(ev *js.JoystickEvent, ch chan<- Event) {
 		value = xboxTriggerToButton(value)
 	}
 	if action != ActionNone {
-		ch <- Event{-1, action, value}
+		con(&Event{-1, action, value})
 		return
 	}
 
@@ -76,8 +76,8 @@ func XBoxOneJoystickDispatcher(ev *js.JoystickEvent, ch chan<- Event) {
 			left = 0
 			right = 1
 		}
-		ch <- Event{-1, ActionButtonDpadLeft, left}
-		ch <- Event{-1, ActionButtonDpadRight, right}
+		con(&Event{-1, ActionButtonDpadLeft, left})
+		con(&Event{-1, ActionButtonDpadRight, right})
 	case 0x11: // "hat0y", // switch/xbox D-pad
 		up := 0.0
 		down := 0.0
@@ -88,7 +88,7 @@ func XBoxOneJoystickDispatcher(ev *js.JoystickEvent, ch chan<- Event) {
 			up = 0
 			down = 1
 		}
-		ch <- Event{-1, ActionButtonDpadUp, up}
-		ch <- Event{-1, ActionButtonDpadDown, down}
+		con(&Event{-1, ActionButtonDpadUp, up})
+		con(&Event{-1, ActionButtonDpadDown, down})
 	}
 }

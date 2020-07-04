@@ -3,96 +3,86 @@ package nscontroller
 import (
 	"fmt"
 	"github.com/omakoto/go-common/src/common"
+	"github.com/omakoto/raspberry-switch-control/nscontroller/utils"
 	"io"
 )
 
 type BackendProxy struct {
-	out io.WriteCloser
-	ch  chan Event
+	syncer *utils.Synchronized
+	out    io.WriteCloser
 }
 
-var _ Consumer = (*BackendProxy)(nil)
-var _ Worker = (*BackendProxy)(nil)
+var _ io.Closer = (*BackendProxy)(nil)
 
 func NewBackendConsumer(out io.WriteCloser) (*BackendProxy, error) {
-	return &BackendProxy{out, make(chan Event)}, nil
+	return &BackendProxy{utils.NewSynchronized(), out}, nil
 }
 
 func (b *BackendProxy) Close() error {
-	close(b.ch)
 	return b.out.Close()
 }
 
-func (b *BackendProxy) Intake() chan<- Event {
-	return b.ch
-}
+func (b *BackendProxy) Consume(ev *Event) {
+	b.syncer.Run(func() {
+		command := ""
 
-func (b *BackendProxy) Run() {
+		switch ev.Action {
+		case ActionButtonA:
+			command = "a"
+		case ActionButtonB:
+			command = "b"
+		case ActionButtonX:
+			command = "x"
+		case ActionButtonY:
+			command = "y"
 
-	go func() {
-		for {
-			ev := <-b.ch
+		case ActionButtonMinus:
+			command = "-"
+		case ActionButtonPlus:
+			command = "+"
 
-			command := ""
+		case ActionButtonHome:
+			command = "h"
+		case ActionButtonCapture:
+			command = "c"
 
-			switch ev.Action {
-			case ActionButtonA:
-				command = "a"
-			case ActionButtonB:
-				command = "b"
-			case ActionButtonX:
-				command = "x"
-			case ActionButtonY:
-				command = "y"
+		case ActionButtonDpadUp:
+			command = "pu"
+		case ActionButtonDpadDown:
+			command = "pd"
+		case ActionButtonDpadLeft:
+			command = "pl"
+		case ActionButtonDpadRight:
+			command = "pr"
 
-			case ActionButtonMinus:
-				command = "-"
-			case ActionButtonPlus:
-				command = "+"
+		case ActionButtonL:
+			command = "l1"
+		case ActionButtonR:
+			command = "r1"
+		case ActionButtonLZ:
+			command = "l2"
+		case ActionButtonRZ:
+			command = "r2"
 
-			case ActionButtonHome:
-				command = "h"
-			case ActionButtonCapture:
-				command = "c"
+		case ActionButtonLeftStickPress:
+			command = "lp"
+		case ActionButtonRightStickPress:
+			command = "rp"
 
-			case ActionButtonDpadUp:
-				command = "pu"
-			case ActionButtonDpadDown:
-				command = "pd"
-			case ActionButtonDpadLeft:
-				command = "pl"
-			case ActionButtonDpadRight:
-				command = "pr"
+		case ActionAxisLX:
+			command = "lx"
+		case ActionAxisLY:
+			command = "ly"
 
-			case ActionButtonL:
-				command = "l1"
-			case ActionButtonR:
-				command = "r1"
-			case ActionButtonLZ:
-				command = "l2"
-			case ActionButtonRZ:
-				command = "r2"
-
-			case ActionButtonLeftStickPress:
-				command = "lp"
-			case ActionButtonRightStickPress:
-				command = "rp"
-
-			case ActionAxisLX:
-				command = "lx"
-			case ActionAxisLY:
-				command = "ly"
-
-			case ActionAxisRX:
-				command = "rx"
-			case ActionAxisRY:
-				command = "ry"
-			}
-
-			msg := fmt.Sprint(command, " ", ev.Value, "\n")
-
-			_, err := b.out.Write([]byte(msg))
-			common.Checkf(err, "Unable to write the message")
+		case ActionAxisRX:
+			command = "rx"
+		case ActionAxisRY:
+			command = "ry"
 		}
-	}()
+
+		msg := fmt.Sprint(command, " ", ev.Value, "\n")
+
+		_, err := b.out.Write([]byte(msg))
+		common.Checkf(err, "Unable to write the message")
+	})
 }

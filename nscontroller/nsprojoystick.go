@@ -3,7 +3,7 @@ package nscontroller
 import "github.com/omakoto/raspberry-switch-control/nscontroller/js"
 
 // NSProJoystickDispatcher is a dispatcher for the Switch Pro controller.
-func NSProJoystickDispatcher(ev *js.JoystickEvent, ch chan<- Event) {
+func NSProJoystickDispatcher(ev *js.JoystickEvent, con Consumer) {
 	var action Action = ActionNone
 
 	value := ev.Value
@@ -53,7 +53,7 @@ func NSProJoystickDispatcher(ev *js.JoystickEvent, ch chan<- Event) {
 	}
 
 	if action != ActionNone {
-		ch <- Event{-1, action, value}
+		con(&Event{-1, action, value})
 		return
 	}
 
@@ -69,8 +69,8 @@ func NSProJoystickDispatcher(ev *js.JoystickEvent, ch chan<- Event) {
 			left = 0
 			right = 1
 		}
-		ch <- Event{-1, ActionButtonDpadLeft, left}
-		ch <- Event{-1, ActionButtonDpadRight, right}
+		con(&Event{-1, ActionButtonDpadLeft, left})
+		con(&Event{-1, ActionButtonDpadRight, right})
 	case 0x11: // "hat0y", // switch/xbox D-pad
 		up := 0.0
 		down := 0.0
@@ -81,7 +81,7 @@ func NSProJoystickDispatcher(ev *js.JoystickEvent, ch chan<- Event) {
 			up = 0
 			down = 1
 		}
-		ch <- Event{-1, ActionButtonDpadUp, up}
-		ch <- Event{-1, ActionButtonDpadDown, down}
+		con(&Event{-1, ActionButtonDpadUp, up})
+		con(&Event{-1, ActionButtonDpadDown, down})
 	}
 }

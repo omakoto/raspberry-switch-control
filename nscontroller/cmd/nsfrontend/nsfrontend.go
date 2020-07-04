@@ -47,11 +47,10 @@ func realMain() int {
 	common.Checke(err)
 	defer backend.Close()
 
-	joystick, err := nscontroller.NewJoystickInput(js, mustGetDispatcher(js), backend)
+	joystick, err := nscontroller.NewJoystickInput(js, mustGetDispatcher(js), backend.Consume)
 	common.Checke(err)
 	defer joystick.Close()
 
-	backend.Run()
 	joystick.Run()
 
 	// Wait for enter press

@@ -48,10 +48,12 @@ type Event struct {
 	Value  float64
 }
 
-type Consumer interface {
-	io.Closer
-	Intake() chan<- Event
-}
+//type Consumer interface {
+//	io.Closer
+//	Intake() chan<- Event
+//}
+
+type Consumer func(ev *Event)
 
 type Worker interface {
 	io.Closer

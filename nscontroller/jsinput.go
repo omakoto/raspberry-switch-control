@@ -6,7 +6,7 @@ import (
 	"io"
 )
 
-type JoystickDispatcher func(ev *js.JoystickEvent, ch chan<- Event)
+type JoystickDispatcher func(ev *js.JoystickEvent, con Consumer)
 
 type JoystickInput struct {
 	js         *js.Js
@@ -26,7 +26,6 @@ func (j *JoystickInput) Close() error {
 
 func (j *JoystickInput) Run() {
 	go func() {
-		next := j.con.Intake()
 		for {
 			ev, err := j.js.Read()
 			if err == io.EOF {
@@ -36,7 +35,7 @@ func (j *JoystickInput) Run() {
 			common.Checke(err)
 			common.Debugf("Joystick input=%x", ev.Element.Number)
 
-			j.dispatcher(&ev, next)
+			j.dispatcher(&ev, j.con)
 		}
 	}()
 }
