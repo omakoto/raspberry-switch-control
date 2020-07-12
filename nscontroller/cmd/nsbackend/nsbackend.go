@@ -95,18 +95,18 @@ func mainLoop(con *nscon.Controller) (err error) {
 		case "c": // Capture
 			con.Input.Button.Capture = darg
 
-		case "-", "m": // Minus
+		case "m": // Minus
 			con.Input.Button.Minus = darg
-		case "+", "p": // plus
+		case "p": // plus
 			con.Input.Button.Plus = darg
 
-		case "l", "l1": // L1
+		case "l1": // L1
 			con.Input.Button.L = darg
-		case "l2", "lz": // L2
+		case "l2": // L2
 			con.Input.Button.ZL = darg
-		case "r", "r1": // R1
+		case "r1": // R1
 			con.Input.Button.R = darg
-		case "r2", "rz": // R2
+		case "r2": // R2
 			con.Input.Button.ZR = darg
 
 		case "pu": // D-pad up
@@ -118,16 +118,16 @@ func mainLoop(con *nscon.Controller) (err error) {
 		case "pr": // D-pad right
 			con.Input.Dpad.Right = darg
 
-		case "pur", "pru": // D-pad
+		case "pur": // D-pad
 			con.Input.Dpad.Up = darg
 			con.Input.Dpad.Right = darg
-		case "pul", "plu": // D-pad
+		case "pul": // D-pad
 			con.Input.Dpad.Up = darg
 			con.Input.Dpad.Left = darg
-		case "pdr", "prd": // D-pad
+		case "pdr": // D-pad
 			con.Input.Dpad.Down = darg
 			con.Input.Dpad.Right = darg
-		case "pdl", "pld": // D-pad
+		case "pdl": // D-pad
 			con.Input.Dpad.Down = darg
 			con.Input.Dpad.Left = darg
 
@@ -159,16 +159,16 @@ func mainLoop(con *nscon.Controller) (err error) {
 		case "lr":
 			con.Input.Stick.Left.X = fdarg
 			con.Input.Stick.Left.Y = 0
-		case "lur", "lru":
+		case "lur":
 			con.Input.Stick.Left.X = fdarg
 			con.Input.Stick.Left.Y = fdarg
-		case "lul", "llu":
+		case "lul":
 			con.Input.Stick.Left.X = -fdarg
 			con.Input.Stick.Left.Y = fdarg
-		case "ldr", "lrd":
+		case "ldr":
 			con.Input.Stick.Left.X = fdarg
 			con.Input.Stick.Left.Y = -fdarg
-		case "ldl", "lld":
+		case "ldl":
 			con.Input.Stick.Left.X = -fdarg
 			con.Input.Stick.Left.Y = -fdarg
 
@@ -190,16 +190,16 @@ func mainLoop(con *nscon.Controller) (err error) {
 		case "rr":
 			con.Input.Stick.Right.X = fdarg
 			con.Input.Stick.Right.Y = 0
-		case "rur", "rru":
+		case "rur":
 			con.Input.Stick.Right.X = fdarg
 			con.Input.Stick.Right.Y = fdarg
-		case "rul", "rlu":
+		case "rul":
 			con.Input.Stick.Right.X = -fdarg
 			con.Input.Stick.Right.Y = fdarg
-		case "rdr", "rrd":
+		case "rdr":
 			con.Input.Stick.Right.X = fdarg
 			con.Input.Stick.Right.Y = -fdarg
-		case "rdl", "rld":
+		case "rdl":
 			con.Input.Stick.Right.X = -fdarg
 			con.Input.Stick.Right.Y = -fdarg
 
