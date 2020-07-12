@@ -1,14 +1,12 @@
 package main
 
 import (
-	"bufio"
 	"github.com/omakoto/go-common/src/common"
 	"github.com/omakoto/raspberry-switch-control/nscontroller"
 	"github.com/omakoto/raspberry-switch-control/nscontroller/js"
 	"github.com/pborman/getopt/v2"
 	"os"
 	"strings"
-	"time"
 )
 
 var (
@@ -53,19 +51,23 @@ func realMain() int {
 	autoFirer := nscontroller.NewAutoFirer(backend.Consume)
 	defer autoFirer.Close()
 
-	autoFirer.SetAutofire(nscontroller.ActionButtonX, nscontroller.AutofireModeNormal, 250*time.Millisecond)
-	autoFirer.SetAutofire(nscontroller.ActionButtonY, nscontroller.AutofireModeToggle, 250*time.Millisecond)
-
 	joystick, err := nscontroller.NewJoystickInput(js, mustGetDispatcher(js), autoFirer.Consume)
 	common.Checke(err)
 	defer joystick.Close()
 
+	stdinProxy, err := nscontroller.NewStreamInput(os.Stdin, backend.Consume)
+	common.Checke(err)
+	defer stdinProxy.Close()
+
 	autoFirer.Run()
 	joystick.Run()
+	stdinProxy.Run()
 
-	// Wait for enter press
-	scanner := bufio.NewScanner(os.Stdin)
-	scanner.Scan()
+	// Wait forever for now
+	wait := make(chan bool)
+	select {
+	case <-wait:
+	}
 
 	common.Debugf("%s finishing", myName)
 

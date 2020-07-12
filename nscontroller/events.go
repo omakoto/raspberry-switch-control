@@ -77,6 +77,14 @@ func (ev *Event) pressed() bool {
 	return ev.Value == 1
 }
 
+func NewEventFromAction(a Action, value float64) Event {
+	return Event{
+		Timestamp: time.Now(),
+		Action:    a,
+		Value:     value,
+	}
+}
+
 type Consumer func(ev *Event)
 
 type Worker interface {
