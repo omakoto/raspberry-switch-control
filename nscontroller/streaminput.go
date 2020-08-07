@@ -4,11 +4,12 @@ import (
 	"bufio"
 	"github.com/omakoto/go-common/src/common"
 	"io"
+	"regexp"
 	"strings"
 	"time"
 )
 
-const streamInputOffDelay = time.Millisecond * 25
+const streamInputOffDelay = time.Millisecond * 200
 
 type StreamInput struct {
 	in   io.ReadCloser
@@ -50,10 +51,12 @@ func (t *StreamInput) press(a Action) {
 }
 
 func (t *StreamInput) Run() {
+	comment_re := regexp.MustCompile(`#.*`)
 	go func() {
 		scanner := bufio.NewScanner(t.in)
 		for scanner.Scan() {
-			command := strings.TrimSpace(scanner.Text())
+			in := scanner.Text()
+			command := strings.TrimSpace(comment_re.ReplaceAllString(in, ""))
 			switch command {
 			case "a": // A
 				t.press(ActionButtonA)
