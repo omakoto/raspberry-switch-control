@@ -99,6 +99,10 @@ func mainLoop(con *nscon.Controller) (err error) {
 			con.Input.Button.Minus = darg
 		case "p": // plus
 			con.Input.Button.Plus = darg
+		case "-": // Minus alternative
+			con.Input.Button.Minus = darg
+		case "+": // plus alternative
+			con.Input.Button.Plus = darg
 
 		case "l1": // L1
 			con.Input.Button.L = darg
