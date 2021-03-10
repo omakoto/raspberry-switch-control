@@ -18,7 +18,8 @@ var (
 )
 
 func mustGetDispatcher(js *js.Js) nscontroller.JoystickDispatcher {
-	if strings.Contains(js.Name, "X-Box One") {
+	if strings.Contains(js.Name, "X-Box One") || strings.Contains(js.Name, "Xbox") {
+		// Xbox string is for the Xbox Series X|S Controller
 		return nscontroller.XBoxOneJoystickDispatcher
 	}
 	if strings.Contains(js.Name, "Nintendo Switch Pro Controller") {
