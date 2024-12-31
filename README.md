@@ -20,7 +20,7 @@ Credit: This project heavily relies on https://github.com/mzyy94/nscon.
 
 1. Install binary on the Raspberry Pi.
 
-        go install -v github.com/omakoto/raspberry-switch-control/nscontroller/cmd/...
+        go install -v github.com/omakoto/raspberry-switch-control/nscontroller/cmd/...@latest
 
 1. Download source for the following script.
 
@@ -59,7 +59,7 @@ Credit: This project heavily relies on https://github.com/mzyy94/nscon.
 
 3. On the host PC, install the software:
 
-        go install -v github.com/omakoto/raspberry-switch-control/nscontroller/cmd/...
+        go install -v github.com/omakoto/raspberry-switch-control/nscontroller/cmd/...@latest
 
 4. On the host PC, run it:
 
