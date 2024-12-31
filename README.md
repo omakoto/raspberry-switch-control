@@ -9,9 +9,13 @@ Credit: This project heavily relies on https://github.com/mzyy94/nscon.
 
 ## Set up Raspberry Pi
 
-(Tested on Ubuntu 24 on 2024-12-30)
+Tested on Ubuntu 24 (on Pi 4) and the latest Raspberry Pi OS (on Zero W 2) on 2024-12-31.
 
 1. Install libcomposites for the USB gadget mode. (From <https://github.com/milador/RaspberryPi-Joystick>)
+
+        # Needed this on Raspberry Pi OS (?). Not needed on Ubuntu.
+        echo "dtoverlay=dwc2" | sudo tee -a /boot/firmware/config.txt
+
 
         echo "dwc2" | sudo tee -a /etc/modules
         echo "libcomposite" | sudo tee -a /etc/modules
@@ -19,6 +23,9 @@ Credit: This project heavily relies on https://github.com/mzyy94/nscon.
         reboot
 
 1. Install binary on the Raspberry Pi.
+
+        # Install commands
+        apt install -y golang xxd git
 
         go install -v github.com/omakoto/raspberry-switch-control/nscontroller/cmd/...@latest
 
@@ -43,29 +50,28 @@ Credit: This project heavily relies on https://github.com/mzyy94/nscon.
 
 ## Control Nintendo Switch with Joystick on a PC (via Raspberry Pi)
 
-1. Plug in the Raspberry Pi to the Switch.
-   - If using a Pi Zero, just connect via the micro-USB cable.
+1. Connect the Raspberry Pi to the Switch.
+   - If using a Pi Zero, connect via the micro-USB port.
    - If using a Pi 4, connect to the USB C port. (aka the power port)
    - *Either way, to make sure the Pi keeps running even when not connected to the switch, use a powered USB hub.*
 
-     So, ideally, use a hub with a usb C output and connect it to the Pi, rather than using an A port.
+     (So, ideally, use a hub with a usb C output and connect it to the Pi, rather than using an A port.)
 
-   
-
-2. Connect a joystick to a host PC. (only the following ones are supported and tested)
+1. Connect a joystick to a host PC. (only the following ones are supported and tested)
     1. Nintendo Pro controller
     2. X-Box One controller
     3. PS4 controller
 
-3. On the host PC, install the software:
+1. On the host PC, install the software:
 
+        apt install -y golang 
         go install -v github.com/omakoto/raspberry-switch-control/nscontroller/cmd/...@latest
 
-4. On the host PC, run it:
+1. On the host PC, run it:
 
         nsfrontend -j /dev/input/js0 -o >(ssh pi@$PI_ADDRESS go/bin/nsbackend) 
 
-5. Press `[enter]` on the console to finish.
+1. Press `[enter]` on the console to finish.
 
 
 

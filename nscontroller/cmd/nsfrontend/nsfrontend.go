@@ -1,12 +1,13 @@
 package main
 
 import (
+	"os"
+	"strings"
+
 	"github.com/omakoto/go-common/src/common"
 	"github.com/omakoto/raspberry-switch-control/nscontroller"
 	"github.com/omakoto/raspberry-switch-control/nscontroller/js"
 	"github.com/pborman/getopt/v2"
-	"os"
-	"strings"
 )
 
 var (
@@ -18,7 +19,7 @@ var (
 )
 
 func mustGetDispatcher(js *js.Js) nscontroller.JoystickDispatcher {
-	if strings.Contains(js.Name, "X-Box One") {
+	if strings.Contains(js.Name, "X-Box One") || strings.Contains(js.Name, "Xbox") {
 		return nscontroller.XBoxOneJoystickDispatcher
 	}
 	if strings.Contains(js.Name, "Nintendo Switch Pro Controller") {

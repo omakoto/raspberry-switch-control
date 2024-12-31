@@ -1,4 +1,4 @@
-// +build linux
+//go:build linux
 
 // Package js is a simple API to interact with the joystick (on Linux).
 package js
@@ -10,12 +10,13 @@ import (
 	"bytes"
 	"encoding/binary"
 	"fmt"
-	"github.com/omakoto/go-common/src/common"
-	"golang.org/x/sys/unix"
 	"io"
 	"os"
 	"time"
 	"unsafe"
+
+	"github.com/omakoto/go-common/src/common"
+	"golang.org/x/sys/unix"
 )
 
 // TODO Introduce constants
