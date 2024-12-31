@@ -5,42 +5,67 @@ Emulate Nintendo Switch USB Controller with Raspberry Pi
 Credit: This project heavily relies on https://github.com/mzyy94/nscon.
 
 ## Hardware requirements
-* Raspberry Pi Zero W (Supposedly, it works with a regular pi 4, via the USB-C port.)
+* Raspberry Pi. Tested with Zero W and Pi 4. Not sure if Pi 5 works. (Saw an page saying 5 doesn't support the usb "gadget" mode?)
 
-## Set up Raspberry Pi Zero
+## Set up Raspberry Pi
+
+(Tested on Ubuntu 24 on 2024-12-30)
 
 1. Install libcomposites for the USB gadget mode. (From <https://github.com/milador/RaspberryPi-Joystick>)
 
-        echo "dtoverlay=dwc2" | sudo tee -a /boot/config.txt
         echo "dwc2" | sudo tee -a /etc/modules
         echo "libcomposite" | sudo tee -a /etc/modules
 
-1. Install on the raspberry pi
+        reboot
 
-        go get -v -u -t github.com/omakoto/raspberry-switch-control/nscontroller/cmd/...
+1. Install binary on the Raspberry Pi.
+
+        go install -v github.com/omakoto/raspberry-switch-control/nscontroller/cmd/...
+
+1. Download source for the following script.
+
+        mkdir -p $HOME/src
+        cd $HOME/src
+        git clone https://github.com/omakoto/raspberry-switch-control.git
 
 1. Create the USB gadget. Do it once after every reboot.
 
-        sudo $HOME/go/src/github.com/omakoto/raspberry-switch-control/scripts/switch-controller-gadget
+        sudo $HOME/src/raspberry-switch-control/scripts/switch-controller-gadget
+
+1. Connect the Raspberry Pi to the Nintendo Switch
+
+  - If it's a Pi 4 or 5, use the USB-C port.
+    
+    My configuration: connect the Switch to a *powered* USB hub, then connect it to the Pi's C port. Make sure the Pi can draw enough power.
+
+  - If it's a Zero, use the micro USB port.
+
 
 ## Control Nintendo Switch with Joystick on a PC (via Raspberry Pi)
 
-1. Plug in the Raspberry Pi to the Switch. If using a Pi Zero, just connect via the micro-USB cable.
+1. Plug in the Raspberry Pi to the Switch.
+   - If using a Pi Zero, just connect via the micro-USB cable.
+   - If using a Pi 4, connect to the USB C port. (aka the power port)
+   - *Either way, to make sure the Pi keeps running even when not connected to the switch, use a powered USB hub.*
 
-1. Connect a joystick (only the following ones are supported and tested) to a host PC.
+     So, ideally, use a hub with a usb C output and connect it to the Pi, rather than using an A port.
+
+   
+
+2. Connect a joystick to a host PC. (only the following ones are supported and tested)
     1. Nintendo Pro controller
-    1. X-Box One controller
-    1. PS4 controller
+    2. X-Box One controller
+    3. PS4 controller
 
-1. On the host PC, install the software:
+3. On the host PC, install the software:
 
-        go get -v -u -t github.com/omakoto/raspberry-switch-control/nscontroller/cmd/...
+        go install -v github.com/omakoto/raspberry-switch-control/nscontroller/cmd/...
 
-1. On the host PC, run it:
+4. On the host PC, run it:
 
         nsfrontend -j /dev/input/js0 -o >(ssh pi@$PI_ADDRESS go/bin/nsbackend) 
 
-1. Press `[enter]` on the console to finish.
+5. Press `[enter]` on the console to finish.
 
 
 
