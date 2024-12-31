@@ -2,13 +2,14 @@ package main
 
 import (
 	"bufio"
-	"github.com/mzyy94/nscon"
-	"github.com/omakoto/go-common/src/common"
-	"github.com/pborman/getopt/v2"
 	"math"
 	"os"
 	"strconv"
 	"strings"
+
+	"github.com/mzyy94/nscon"
+	"github.com/omakoto/go-common/src/common"
+	"github.com/pborman/getopt/v2"
 )
 
 // TODO Introduce constants for commands.
@@ -95,9 +96,9 @@ func mainLoop(con *nscon.Controller) (err error) {
 		case "c": // Capture
 			con.Input.Button.Capture = darg
 
-		case "m": // Minus
+		case "-": // Minus
 			con.Input.Button.Minus = darg
-		case "p": // plus
+		case "+": // plus
 			con.Input.Button.Plus = darg
 
 		case "l1": // L1
