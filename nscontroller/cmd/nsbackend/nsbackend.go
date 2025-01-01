@@ -7,8 +7,8 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/mzyy94/nscon"
 	"github.com/omakoto/go-common/src/common"
+	"github.com/omakoto/raspberry-switch-control/nscontroller"
 	"github.com/pborman/getopt/v2"
 )
 
@@ -63,7 +63,7 @@ func aToD(arg float64, neg, pos *uint8) {
 	}
 }
 
-func mainLoop(con *nscon.Controller) (err error) {
+func mainLoop(con *nscontroller.Controller) (err error) {
 	// Wait for stdin and convert to the command.
 	scanner := bufio.NewScanner(os.Stdin)
 	for scanner.Scan() {
@@ -218,7 +218,7 @@ func realMain() int {
 	if device == nil {
 		*device = "/dev/hidg0"
 	}
-	con := nscon.NewController(*device)
+	con := nscontroller.NewController(*device)
 	if *debug {
 		con.LogLevel = 2
 		common.DebugEnabled = true
