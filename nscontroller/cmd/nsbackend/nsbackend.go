@@ -47,10 +47,8 @@ func parseCommand(s string) (command string, arg float64, hasArg bool, autoRelea
 			arg = 1
 		}
 		hasArg = true
-	}
-	if strings.HasPrefix(command, "-") {
+	} else {
 		autoRelease = true
-		command = command[1:]
 	}
 
 	ar := ""
