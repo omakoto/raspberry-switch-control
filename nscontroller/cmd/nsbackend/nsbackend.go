@@ -14,8 +14,6 @@ import (
 	"github.com/pborman/getopt/v2"
 )
 
-// TODO Introduce constants for commands.
-
 const (
 	analogToDigitalThreshold = 1.0
 )
@@ -64,17 +62,18 @@ func parseCommand(s string) (command string, arg float64, hasArg bool, autoRelea
 	return
 }
 
-func aToD(arg float64, neg, pos *uint8) {
+func aToD(arg float64) (neg, pos uint8) {
 	if arg >= analogToDigitalThreshold {
-		*pos = 1
-		*neg = 0
+		pos = 1
+		neg = 0
 	} else if arg <= -analogToDigitalThreshold {
-		*pos = 0
-		*neg = 1
+		pos = 0
+		neg = 1
 	} else {
-		*pos = 0
-		*neg = 0
+		pos = 0
+		neg = 0
 	}
+	return
 }
 
 type Coordinator struct {
@@ -207,9 +206,9 @@ func (co *Coordinator) sendToController(command string) {
 		con.Input.Dpad.Left = darg
 
 	case "px": // D-pad alternative
-		aToD(arg, &con.Input.Dpad.Right, &con.Input.Dpad.Right)
+		con.Input.Dpad.Left, con.Input.Dpad.Right = aToD(arg)
 	case "py": // D-pad alternative
-		aToD(arg, &con.Input.Dpad.Down, &con.Input.Dpad.Up)
+		con.Input.Dpad.Up, con.Input.Dpad.Down = aToD(arg)
 
 	case "lp": // Left stick press
 		con.Input.Stick.Left.Press = darg
