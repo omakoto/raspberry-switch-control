@@ -7,6 +7,7 @@ import (
 	"strconv"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/omakoto/go-common/src/common"
 	"github.com/omakoto/raspberry-switch-control/nscontroller"
@@ -24,21 +25,21 @@ var (
 	device = getopt.StringLong("device", 'f', "/dev/hidg0", "Specify device file")
 )
 
-func parseCommand(s string) (command string, arg float64, hasArg bool, err error) {
+func parseCommand(s string) (command string, arg float64, hasArg bool, autoRelease bool, err error) {
 	command = ""
 	arg = 0
 	hasArg = false
 
 	arr := strings.Fields(s)
 	if len(arr) == 0 {
-		return "", 0, false, nil
+		return "", 0, false, false, nil
 	}
 	command = strings.ToLower(arr[0])
 	if len(arr) > 1 {
 		arg, err = strconv.ParseFloat(arr[1], 32)
 		if err != nil {
 			common.Warnf("Invalid float: %#v", arr[1])
-			return "", 0, false, err
+			return "", 0, false, false, err
 		}
 		if arg < -1 {
 			arg = -1
@@ -47,7 +48,16 @@ func parseCommand(s string) (command string, arg float64, hasArg bool, err error
 		}
 		hasArg = true
 	}
-	common.Debugf("Command=%#v arg=%f", command, arg)
+	if strings.HasPrefix(command, "-") {
+		autoRelease = true
+		command = command[1:]
+	}
+
+	ar := ""
+	if autoRelease {
+		ar = " (auto-release)"
+	}
+	common.Debugf("Command=%#v arg=%f%s", command, arg, ar)
 	return
 }
 
@@ -64,9 +74,34 @@ func aToD(arg float64, neg, pos *uint8) {
 	}
 }
 
+type CommandReader struct {
+	Ch chan string
+}
+
+func NewCommandReader() CommandReader {
+	return CommandReader{
+		Ch: make(chan string, 100),
+	}
+}
+
+func (i *CommandReader) Send(command string) {
+	i.Ch <- command
+}
+
+func (i *CommandReader) SendDelayed(command string, waitMillis int) {
+	go func() {
+		time.Sleep(time.Duration(waitMillis) * time.Millisecond)
+		i.Send(command)
+	}()
+}
+
+func (i *CommandReader) Close() {
+	i.Send("")
+}
+
 func mainLoop(con *nscontroller.Controller) error {
 	// Wait for stdin and convert to the command.
-	readChan := make(chan string, 100)
+	commands := NewCommandReader()
 	scanner := bufio.NewScanner(os.Stdin)
 
 	wg := sync.WaitGroup{}
@@ -74,22 +109,21 @@ func mainLoop(con *nscontroller.Controller) error {
 	// Input read loop.
 	wg.Add(1)
 	go func() {
+		defer commands.Close()
+
 		for scanner.Scan() {
-			readChan <- scanner.Text()
-			// sendCommand(con, scanner.Text())
-			// common.Dump("State:", con.Input)
+			commands.Send(scanner.Text())
 		}
-		readChan <- ""
 		wg.Done()
 	}()
 
 	wg.Add(1)
 	go func() {
-		for input := range readChan {
-			if input == "" {
+		for command := range commands.Ch {
+			if command == "" {
 				break
 			}
-			sendCommand(con, input)
+			sendCommand(con, command, commands)
 		}
 		wg.Done()
 	}()
@@ -99,8 +133,8 @@ func mainLoop(con *nscontroller.Controller) error {
 	return scanner.Err()
 }
 
-func sendCommand(con *nscontroller.Controller, command string) {
-	command, arg, hasArg, err := parseCommand(command)
+func sendCommand(con *nscontroller.Controller, command string, commands CommandReader) {
+	command, arg, hasArg, autoRelease, err := parseCommand(command)
 	if err != nil || command == "" {
 		return
 	}
@@ -241,8 +275,12 @@ func sendCommand(con *nscontroller.Controller, command string) {
 		common.Warnf("Unknown command: %#v\n", command)
 		return
 	}
+
+	if autoRelease {
+		commands.SendDelayed(command+" 0", 50) // The delay needs to be bigger than the interval within startInputReport().
+	}
+
 	common.Dump("State:", con.Input)
-	return
 }
 
 func realMain() int {
