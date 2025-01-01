@@ -23,7 +23,12 @@ const (
 var (
 	debug  = getopt.BoolLong("debug", 'd', "Enable debug output")
 	device = getopt.StringLong("device", 'f', "/dev/hidg0", "Specify device file")
+
+	autoReleaseMillis = getopt.IntLong("auto-release-millis", 'a', 50, "Set auto-release delay in milliseconds")
 )
+
+// The delay needs to be bigger than the interval within startInputReport().
+const AUTO_RELEASE_MILLIS_MIN = 50
 
 func parseCommand(s string) (command string, arg float64, hasArg bool, autoRelease bool, err error) {
 	command = ""
@@ -72,66 +77,69 @@ func aToD(arg float64, neg, pos *uint8) {
 	}
 }
 
-type CommandReader struct {
-	Ch chan string
+type Coordinator struct {
+	con     *nscontroller.Controller
+	ch      chan string
+	wg      sync.WaitGroup
+	started bool
 }
 
-func NewCommandReader() CommandReader {
-	return CommandReader{
-		Ch: make(chan string, 100),
+func NewCoordinator(con *nscontroller.Controller) Coordinator {
+	return Coordinator{
+		con: con,
+		ch:  make(chan string, 100),
 	}
 }
 
-func (i *CommandReader) Send(command string) {
-	i.Ch <- command
+func (co *Coordinator) checkStarted() {
+	if !co.started {
+		panic("Not started")
+	}
 }
 
-func (i *CommandReader) SendDelayed(command string, waitMillis int) {
+func (co *Coordinator) Send(command string) {
+	co.checkStarted()
+	if command == "" {
+		return
+	}
+	co.ch <- command
+}
+
+func (co *Coordinator) SendDelayed(command string, waitMillis int) {
+	co.checkStarted()
 	go func() {
 		time.Sleep(time.Duration(waitMillis) * time.Millisecond)
-		i.Send(command)
+		co.Send(command)
 	}()
 }
 
-func (i *CommandReader) Close() {
-	i.Send("")
+func (co *Coordinator) Close() {
+	co.ch <- ""
 }
 
-func mainLoop(con *nscontroller.Controller) error {
-	// Wait for stdin and convert to the command.
-	commands := NewCommandReader()
-	scanner := bufio.NewScanner(os.Stdin)
-
-	wg := sync.WaitGroup{}
-
-	// Input read loop.
-	wg.Add(1)
+func (co *Coordinator) Start() {
+	if co.started {
+		panic("Already started")
+	}
+	co.started = true
+	co.wg.Add(1)
 	go func() {
-		defer commands.Close()
-
-		for scanner.Scan() {
-			commands.Send(scanner.Text())
-		}
-		wg.Done()
-	}()
-
-	wg.Add(1)
-	go func() {
-		for command := range commands.Ch {
+		for command := range co.ch {
 			if command == "" {
 				break
 			}
-			sendCommand(con, command, commands)
+			co.sendToController(command)
 		}
-		wg.Done()
+		co.wg.Done()
 	}()
-
-	wg.Wait()
-
-	return scanner.Err()
 }
 
-func sendCommand(con *nscontroller.Controller, command string, commands CommandReader) {
+func (co *Coordinator) Wait() {
+	co.checkStarted()
+	co.wg.Wait()
+}
+
+func (co *Coordinator) sendToController(command string) {
 	command, arg, hasArg, autoRelease, err := parseCommand(command)
 	if err != nil || command == "" {
 		return
@@ -145,6 +153,7 @@ func sendCommand(con *nscontroller.Controller, command string, commands CommandR
 	fdarg := float64(darg)
 
 	// Hmm, analog stick Y is inverted?
+	con := co.con
 
 	switch command {
 	case "a": // A
@@ -275,16 +284,37 @@ func sendCommand(con *nscontroller.Controller, command string, commands CommandR
 	}
 
 	if autoRelease {
-		commands.SendDelayed(command+" 0", 50) // The delay needs to be bigger than the interval within startInputReport().
+		co.SendDelayed(command+" 0", *autoReleaseMillis)
 	}
 
 	common.Dump("State:", con.Input)
+}
+
+func mainLoop(con *nscontroller.Controller) error {
+	// Wait for stdin and convert to the command.
+	co := NewCoordinator(con)
+	scanner := bufio.NewScanner(os.Stdin)
+
+	co.Start()
+
+	for scanner.Scan() {
+		co.Send(scanner.Text())
+	}
+	common.Debug("Input closed.")
+
+	co.Close()
+	co.Wait()
+
+	return scanner.Err()
 }
 
 func realMain() int {
 	getopt.Parse()
 	if device == nil {
 		*device = "/dev/hidg0"
+	}
+	if *autoReleaseMillis < AUTO_RELEASE_MILLIS_MIN {
+		*autoReleaseMillis = AUTO_RELEASE_MILLIS_MIN
 	}
 	con := nscontroller.NewController(*device)
 	if *debug {
