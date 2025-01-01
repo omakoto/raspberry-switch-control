@@ -28,29 +28,28 @@ var (
 // The delay needs to be bigger than the interval within startInputReport().
 const AUTO_RELEASE_MILLIS_MIN = 50
 
-func parseCommand(s string) (command string, arg float64, hasArg bool, autoRelease bool, err error) {
+func parseCommand(s string) (command string, arg float64, autoRelease bool, err error) {
 	command = ""
 	arg = 0
-	hasArg = false
 
 	arr := strings.Fields(s)
 	if len(arr) == 0 {
-		return "", 0, false, false, nil
+		return "", 0, false, nil
 	}
 	command = strings.ToLower(arr[0])
 	if len(arr) > 1 {
 		arg, err = strconv.ParseFloat(arr[1], 32)
 		if err != nil {
 			common.Warnf("Invalid float: %#v", arr[1])
-			return "", 0, false, false, err
+			return "", 0, false, err
 		}
 		if arg < -1 {
 			arg = -1
 		} else if arg > 1 {
 			arg = 1
 		}
-		hasArg = true
 	} else {
+		arg = 1
 		autoRelease = true
 	}
 
@@ -139,14 +138,14 @@ func (co *Coordinator) Wait() {
 }
 
 func (co *Coordinator) sendToController(command string) {
-	command, arg, hasArg, autoRelease, err := parseCommand(command)
+	command, arg, autoRelease, err := parseCommand(command)
 	if err != nil || command == "" {
 		return
 	}
 
 	// Digital button arg: 0 or 1
 	var darg uint8 = 0
-	if !hasArg || math.Abs(arg) >= analogToDigitalThreshold {
+	if math.Abs(arg) >= analogToDigitalThreshold {
 		darg = 1
 	}
 	fdarg := float64(darg)
