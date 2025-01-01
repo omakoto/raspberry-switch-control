@@ -6,6 +6,7 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"sync"
 
 	"github.com/omakoto/go-common/src/common"
 	"github.com/omakoto/raspberry-switch-control/nscontroller"
@@ -63,154 +64,185 @@ func aToD(arg float64, neg, pos *uint8) {
 	}
 }
 
-func mainLoop(con *nscontroller.Controller) (err error) {
+func mainLoop(con *nscontroller.Controller) error {
 	// Wait for stdin and convert to the command.
+	readChan := make(chan string, 100)
 	scanner := bufio.NewScanner(os.Stdin)
-	for scanner.Scan() {
-		command, arg, hasArg, err := parseCommand(scanner.Text())
-		if err != nil || command == "" {
-			continue
+
+	wg := sync.WaitGroup{}
+
+	// Input read loop.
+	wg.Add(1)
+	go func() {
+		for scanner.Scan() {
+			readChan <- scanner.Text()
+			// sendCommand(con, scanner.Text())
+			// common.Dump("State:", con.Input)
 		}
+		readChan <- ""
+		wg.Done()
+	}()
 
-		// Digital button arg: 0 or 1
-		var darg uint8 = 0
-		if !hasArg || math.Abs(arg) >= analogToDigitalThreshold {
-			darg = 1
+	wg.Add(1)
+	go func() {
+		for input := range readChan {
+			if input == "" {
+				break
+			}
+			sendCommand(con, input)
 		}
-		fdarg := float64(darg)
+		wg.Done()
+	}()
 
-		// Hmm, analog stick Y is inverted?
+	wg.Wait()
 
-		switch command {
-		case "a": // A
-			con.Input.Button.A = darg
-		case "b": // B
-			con.Input.Button.B = darg
-		case "x": // X
-			con.Input.Button.X = darg
-		case "y": // Y
-			con.Input.Button.Y = darg
+	return scanner.Err()
+}
 
-		case "h": // Home
-			con.Input.Button.Home = darg
-		case "c": // Capture
-			con.Input.Button.Capture = darg
-
-		case "-": // Minus
-			con.Input.Button.Minus = darg
-		case "+": // plus
-			con.Input.Button.Plus = darg
-
-		case "l1": // L1
-			con.Input.Button.L = darg
-		case "l2": // L2
-			con.Input.Button.ZL = darg
-		case "r1": // R1
-			con.Input.Button.R = darg
-		case "r2": // R2
-			con.Input.Button.ZR = darg
-
-		case "pu": // D-pad up
-			con.Input.Dpad.Up = darg
-		case "pd": // D-pad down
-			con.Input.Dpad.Down = darg
-		case "pl": // D-pad left
-			con.Input.Dpad.Left = darg
-		case "pr": // D-pad right
-			con.Input.Dpad.Right = darg
-
-		case "pur": // D-pad
-			con.Input.Dpad.Up = darg
-			con.Input.Dpad.Right = darg
-		case "pul": // D-pad
-			con.Input.Dpad.Up = darg
-			con.Input.Dpad.Left = darg
-		case "pdr": // D-pad
-			con.Input.Dpad.Down = darg
-			con.Input.Dpad.Right = darg
-		case "pdl": // D-pad
-			con.Input.Dpad.Down = darg
-			con.Input.Dpad.Left = darg
-
-		case "px": // D-pad alternative
-			aToD(arg, &con.Input.Dpad.Right, &con.Input.Dpad.Right)
-		case "py": // D-pad alternative
-			aToD(arg, &con.Input.Dpad.Down, &con.Input.Dpad.Up)
-
-		case "lp": // Left stick press
-			con.Input.Stick.Left.Press = darg
-		case "rp": // Right stick press
-			con.Input.Stick.Right.Press = darg
-
-		case "lx": // Left stick X
-			con.Input.Stick.Left.X = arg
-		case "ly": // Left stick Y
-			con.Input.Stick.Left.Y = -arg
-
-			// Left stick alternative
-		case "lu":
-			con.Input.Stick.Left.X = 0
-			con.Input.Stick.Left.Y = -fdarg
-		case "ld":
-			con.Input.Stick.Left.X = 0
-			con.Input.Stick.Left.Y = -fdarg
-		case "ll":
-			con.Input.Stick.Left.X = -fdarg
-			con.Input.Stick.Left.Y = 0
-		case "lr":
-			con.Input.Stick.Left.X = fdarg
-			con.Input.Stick.Left.Y = 0
-		case "lur":
-			con.Input.Stick.Left.X = fdarg
-			con.Input.Stick.Left.Y = fdarg
-		case "lul":
-			con.Input.Stick.Left.X = -fdarg
-			con.Input.Stick.Left.Y = fdarg
-		case "ldr":
-			con.Input.Stick.Left.X = fdarg
-			con.Input.Stick.Left.Y = -fdarg
-		case "ldl":
-			con.Input.Stick.Left.X = -fdarg
-			con.Input.Stick.Left.Y = -fdarg
-
-		case "rx": // Right stick X
-			con.Input.Stick.Right.X = arg
-		case "ry": // Right stick Y
-			con.Input.Stick.Right.Y = -arg
-
-			// Right stick alternative
-		case "ru":
-			con.Input.Stick.Right.X = 0
-			con.Input.Stick.Right.Y = fdarg
-		case "rd":
-			con.Input.Stick.Right.X = 0
-			con.Input.Stick.Right.Y = -fdarg
-		case "rl":
-			con.Input.Stick.Right.X = -fdarg
-			con.Input.Stick.Right.Y = 0
-		case "rr":
-			con.Input.Stick.Right.X = fdarg
-			con.Input.Stick.Right.Y = 0
-		case "rur":
-			con.Input.Stick.Right.X = fdarg
-			con.Input.Stick.Right.Y = fdarg
-		case "rul":
-			con.Input.Stick.Right.X = -fdarg
-			con.Input.Stick.Right.Y = fdarg
-		case "rdr":
-			con.Input.Stick.Right.X = fdarg
-			con.Input.Stick.Right.Y = -fdarg
-		case "rdl":
-			con.Input.Stick.Right.X = -fdarg
-			con.Input.Stick.Right.Y = -fdarg
-
-		default:
-			common.Warnf("Unknown command: %#v\n", command)
-			continue
-		}
-		common.Dump("State:", con.Input)
+func sendCommand(con *nscontroller.Controller, command string) {
+	command, arg, hasArg, err := parseCommand(command)
+	if err != nil || command == "" {
+		return
 	}
-	return nil
+
+	// Digital button arg: 0 or 1
+	var darg uint8 = 0
+	if !hasArg || math.Abs(arg) >= analogToDigitalThreshold {
+		darg = 1
+	}
+	fdarg := float64(darg)
+
+	// Hmm, analog stick Y is inverted?
+
+	switch command {
+	case "a": // A
+		con.Input.Button.A = darg
+	case "b": // B
+		con.Input.Button.B = darg
+	case "x": // X
+		con.Input.Button.X = darg
+	case "y": // Y
+		con.Input.Button.Y = darg
+
+	case "h": // Home
+		con.Input.Button.Home = darg
+	case "c": // Capture
+		con.Input.Button.Capture = darg
+
+	case "-": // Minus
+		con.Input.Button.Minus = darg
+	case "+": // Plus
+		con.Input.Button.Plus = darg
+
+	case "l1": // L1
+		con.Input.Button.L = darg
+	case "l2": // L2
+		con.Input.Button.ZL = darg
+	case "r1": // R1
+		con.Input.Button.R = darg
+	case "r2": // R2
+		con.Input.Button.ZR = darg
+
+	case "pu": // D-pad up
+		con.Input.Dpad.Up = darg
+	case "pd": // D-pad down
+		con.Input.Dpad.Down = darg
+	case "pl": // D-pad left
+		con.Input.Dpad.Left = darg
+	case "pr": // D-pad right
+		con.Input.Dpad.Right = darg
+
+	case "pur": // D-pad
+		con.Input.Dpad.Up = darg
+		con.Input.Dpad.Right = darg
+	case "pul": // D-pad
+		con.Input.Dpad.Up = darg
+		con.Input.Dpad.Left = darg
+	case "pdr": // D-pad
+		con.Input.Dpad.Down = darg
+		con.Input.Dpad.Right = darg
+	case "pdl": // D-pad
+		con.Input.Dpad.Down = darg
+		con.Input.Dpad.Left = darg
+
+	case "px": // D-pad alternative
+		aToD(arg, &con.Input.Dpad.Right, &con.Input.Dpad.Right)
+	case "py": // D-pad alternative
+		aToD(arg, &con.Input.Dpad.Down, &con.Input.Dpad.Up)
+
+	case "lp": // Left stick press
+		con.Input.Stick.Left.Press = darg
+	case "rp": // Right stick press
+		con.Input.Stick.Right.Press = darg
+
+	case "lx": // Left stick X
+		con.Input.Stick.Left.X = arg
+	case "ly": // Left stick Y
+		con.Input.Stick.Left.Y = -arg
+
+		// Left stick alternative
+	case "lu":
+		con.Input.Stick.Left.X = 0
+		con.Input.Stick.Left.Y = -fdarg
+	case "ld":
+		con.Input.Stick.Left.X = 0
+		con.Input.Stick.Left.Y = -fdarg
+	case "ll":
+		con.Input.Stick.Left.X = -fdarg
+		con.Input.Stick.Left.Y = 0
+	case "lr":
+		con.Input.Stick.Left.X = fdarg
+		con.Input.Stick.Left.Y = 0
+	case "lur":
+		con.Input.Stick.Left.X = fdarg
+		con.Input.Stick.Left.Y = fdarg
+	case "lul":
+		con.Input.Stick.Left.X = -fdarg
+		con.Input.Stick.Left.Y = fdarg
+	case "ldr":
+		con.Input.Stick.Left.X = fdarg
+		con.Input.Stick.Left.Y = -fdarg
+	case "ldl":
+		con.Input.Stick.Left.X = -fdarg
+		con.Input.Stick.Left.Y = -fdarg
+
+	case "rx": // Right stick X
+		con.Input.Stick.Right.X = arg
+	case "ry": // Right stick Y
+		con.Input.Stick.Right.Y = -arg
+
+		// Right stick alternative
+	case "ru":
+		con.Input.Stick.Right.X = 0
+		con.Input.Stick.Right.Y = fdarg
+	case "rd":
+		con.Input.Stick.Right.X = 0
+		con.Input.Stick.Right.Y = -fdarg
+	case "rl":
+		con.Input.Stick.Right.X = -fdarg
+		con.Input.Stick.Right.Y = 0
+	case "rr":
+		con.Input.Stick.Right.X = fdarg
+		con.Input.Stick.Right.Y = 0
+	case "rur":
+		con.Input.Stick.Right.X = fdarg
+		con.Input.Stick.Right.Y = fdarg
+	case "rul":
+		con.Input.Stick.Right.X = -fdarg
+		con.Input.Stick.Right.Y = fdarg
+	case "rdr":
+		con.Input.Stick.Right.X = fdarg
+		con.Input.Stick.Right.Y = -fdarg
+	case "rdl":
+		con.Input.Stick.Right.X = -fdarg
+		con.Input.Stick.Right.Y = -fdarg
+
+	default:
+		common.Warnf("Unknown command: %#v\n", command)
+		return
+	}
+	common.Dump("State:", con.Input)
+	return
 }
 
 func realMain() int {
@@ -231,7 +263,8 @@ func realMain() int {
 	err := con.Connect()
 	common.Checkf(err, "Unable to connect to device %s", *device)
 
-	mainLoop(con)
+	err = mainLoop(con)
+	common.Check(err, "Failed to read from input")
 
 	return 0
 }
