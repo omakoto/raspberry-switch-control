@@ -7,11 +7,14 @@ package nscontroller
 import (
 	"encoding/hex"
 	"errors"
+	"io"
 	"log"
 	"math"
 	"os"
 	"sync"
 	"time"
+
+	"github.com/omakoto/go-common/src/common"
 )
 
 var SPI_ROM_DATA = map[byte][]byte{
@@ -119,35 +122,48 @@ func bitInput(input, offset uint8) uint8 {
 	return 1 << offset
 }
 
-func (c *Controller) getInputBuffer() []byte {
+func (c *Controller) Send() {
 	c.mu.Lock()
 	c.currentInput = c.Input
 	c.mu.Unlock()
-	left := bitInput(c.currentInput.Button.Y, 0) |
-		bitInput(c.currentInput.Button.X, 1) |
-		bitInput(c.currentInput.Button.B, 2) |
-		bitInput(c.currentInput.Button.A, 3) |
-		bitInput(c.currentInput.Button.R, 6) |
-		bitInput(c.currentInput.Button.ZR, 7)
+}
 
-	center := bitInput(c.currentInput.Button.Minus, 0) |
-		bitInput(c.currentInput.Button.Plus, 1) |
-		bitInput(c.currentInput.Stick.Right.Press, 2) |
-		bitInput(c.currentInput.Stick.Left.Press, 3) |
-		bitInput(c.currentInput.Button.Home, 4) |
-		bitInput(c.currentInput.Button.Capture, 5)
+func (c *Controller) Dump() {
+	c.mu.Lock()
+	common.Dump("State:", c.Input)
+	c.mu.Unlock()
+}
 
-	right := bitInput(c.currentInput.Dpad.Down, 0) |
-		bitInput(c.currentInput.Dpad.Up, 1) |
-		bitInput(c.currentInput.Dpad.Right, 2) |
-		bitInput(c.currentInput.Dpad.Left, 3) |
-		bitInput(c.currentInput.Button.L, 6) |
-		bitInput(c.currentInput.Button.ZL, 7)
+func (c *Controller) getInputBuffer() []byte {
+	c.mu.Lock()
+	ci := c.currentInput
+	left := bitInput(ci.Button.Y, 0) |
+		bitInput(ci.Button.X, 1) |
+		bitInput(ci.Button.B, 2) |
+		bitInput(ci.Button.A, 3) |
+		bitInput(ci.Button.R, 6) |
+		bitInput(ci.Button.ZR, 7)
 
-	lx := uint16(math.Round((1 + c.currentInput.Stick.Left.X) * 2047.5))
-	ly := uint16(math.Round((1 + c.currentInput.Stick.Left.Y) * 2047.5))
-	rx := uint16(math.Round((1 + c.currentInput.Stick.Right.X) * 2047.5))
-	ry := uint16(math.Round((1 + c.currentInput.Stick.Right.Y) * 2047.5))
+	center := bitInput(ci.Button.Minus, 0) |
+		bitInput(ci.Button.Plus, 1) |
+		bitInput(ci.Stick.Right.Press, 2) |
+		bitInput(ci.Stick.Left.Press, 3) |
+		bitInput(ci.Button.Home, 4) |
+		bitInput(ci.Button.Capture, 5)
+
+	right := bitInput(ci.Dpad.Down, 0) |
+		bitInput(ci.Dpad.Up, 1) |
+		bitInput(ci.Dpad.Right, 2) |
+		bitInput(ci.Dpad.Left, 3) |
+		bitInput(ci.Button.L, 6) |
+		bitInput(ci.Button.ZL, 7)
+
+	lx := uint16(math.Round((1 + ci.Stick.Left.X) * 2047.5))
+	ly := uint16(math.Round((1 + ci.Stick.Left.Y) * 2047.5))
+	rx := uint16(math.Round((1 + ci.Stick.Right.X) * 2047.5))
+	ry := uint16(math.Round((1 + ci.Stick.Right.Y) * 2047.5))
+
+	c.mu.Unlock()
 
 	leftStick := packShorts(lx, ly)
 	rightStick := packShorts(rx, ry)
@@ -230,6 +246,12 @@ func (c *Controller) Connect() error {
 			}
 
 			n, err := c.fp.Read(buf)
+			if err == io.EOF {
+				if c.LogLevel > 0 {
+					log.Println("EOF")
+				}
+				break
+			}
 			if c.LogLevel > 0 {
 				log.Println("read:", hex.EncodeToString(buf[:n]), err)
 			}

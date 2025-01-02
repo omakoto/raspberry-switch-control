@@ -281,11 +281,12 @@ func (co *Coordinator) sendToController(command string) {
 		return
 	}
 
+	con.Send()
+	con.Dump()
+
 	if autoRelease {
 		co.SendDelayed(command+" 0", *autoReleaseMillis)
 	}
-
-	common.Dump("State:", con.Input)
 }
 
 func mainLoop(con *nscontroller.Controller) error {
@@ -316,7 +317,7 @@ func realMain() int {
 	}
 	con := nscontroller.NewController(*device)
 	if *debug {
-		con.LogLevel = 2
+		// con.LogLevel = 2
 		common.DebugEnabled = true
 	}
 	defer con.Close()
