@@ -13,7 +13,7 @@ import (
 var (
 	debug    = getopt.BoolLong("debug", 'd', "Enable debug output")
 	joystick = getopt.StringLong("joystick", 'j', "/dev/input/js0", "Specify joystick device file")
-	out      = getopt.StringLong("out", 'o', "/dev/stdout", "Specify backend stdin")
+	out      = getopt.StringLong("out", 'o', "/dev/stdout", "Specify backend file")
 
 	myName = common.MustGetBinName()
 )
@@ -39,13 +39,13 @@ func realMain() int {
 		common.DebugEnabled = true
 	}
 
-	backendStdin, err := os.OpenFile(*out, os.O_WRONLY, 0)
+	out, err := os.OpenFile(*out, os.O_WRONLY, 0)
 	common.Checkf(err, "open failed")
 
 	js, err := js.NewJs(*joystick)
 	common.Checke(err)
 
-	backend, err := nscontroller.NewBackendConsumer(backendStdin)
+	backend, err := nscontroller.NewBackendConsumer(out)
 	common.Checke(err)
 	defer backend.Close()
 

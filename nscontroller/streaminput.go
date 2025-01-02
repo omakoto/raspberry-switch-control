@@ -2,14 +2,15 @@ package nscontroller
 
 import (
 	"bufio"
-	"github.com/omakoto/go-common/src/common"
 	"io"
 	"regexp"
 	"strings"
 	"time"
+
+	"github.com/omakoto/go-common/src/common"
 )
 
-const streamInputOffDelay = time.Millisecond * 200
+const streamInputOffDelay = time.Millisecond * 60
 
 type StreamInput struct {
 	in   io.ReadCloser
@@ -72,9 +73,9 @@ func (t *StreamInput) Run() {
 			case "c": // Capture
 				t.press(ActionButtonCapture)
 
-			case "m": // Minus
+			case "m", "-": // Minus
 				t.press(ActionButtonMinus)
-			case "p": // plus
+			case "p", "+": // Plus
 				t.press(ActionButtonPlus)
 
 			case "l1": // L1

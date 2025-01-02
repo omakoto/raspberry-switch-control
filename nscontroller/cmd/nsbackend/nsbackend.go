@@ -168,9 +168,9 @@ func (co *Coordinator) sendToController(command string) {
 	case "c": // Capture
 		con.Input.Button.Capture = darg
 
-	case "-": // Minus
+	case "m", "-": // Minus
 		con.Input.Button.Minus = darg
-	case "+": // Plus
+	case "p", "+": // Plus
 		con.Input.Button.Plus = darg
 
 	case "l1": // L1
