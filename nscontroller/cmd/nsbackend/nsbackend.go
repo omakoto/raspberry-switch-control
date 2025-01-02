@@ -122,13 +122,13 @@ func (co *Coordinator) Start() {
 	co.started = true
 	co.wg.Add(1)
 	go func() {
+		defer co.wg.Done()
 		for command := range co.ch {
 			if command == "" {
 				break
 			}
 			co.sendToController(command)
 		}
-		co.wg.Done()
 	}()
 }
 
