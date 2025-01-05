@@ -81,6 +81,16 @@ Tested on Ubuntu 24 (on Pi 4) and the latest Raspberry Pi OS (on Zero W 2) on 20
 1. Press `[enter]` on the console to finish.
 
 
+## Run backend as daemon (Advanced use)
+
+1. Start the backend with `-x`:
+
+        $HOME/go/bin/nsbackend -x
+
+1. Write to `/tmp/nsbackend.fifo` instead:
+
+        nsfrontend -j /dev/input/js0 -o >(ssh pi@$PI_ADDRESS 'cat > /tmp/nsbackend.fifo') 
+
 
 ## TODOs
 

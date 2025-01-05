@@ -19,10 +19,10 @@ func mustCreateFifo(path string) *os.File {
 	} else if !errors.Is(err, os.ErrNotExist) {
 		common.Checkf(err, "Cannot create file '%s': stat failed", path)
 	}
-	err = syscall.Mkfifo(path, 0600)
+	err = syscall.Mkfifo(path, 0666)
 	common.Checkf(err, "Makefifo failed for '%s'", path)
 
-	file, err := os.OpenFile(path, os.O_RDWR, 0600)
+	file, err := os.OpenFile(path, os.O_RDWR, 0666)
 	common.Checkf(err, "Open failed for '%s'", path)
 
 	return file

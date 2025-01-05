@@ -1,0 +1,8 @@
+#!/bin/bash
+
+set -e
+
+cd "${0%/*}"/nscontroller
+
+go run ./cmd/nsfrontend "$@"
+
