@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"os"
 	"strings"
 
@@ -63,6 +64,8 @@ func realMain() int {
 	autoFirer.Run()
 	joystick.Run()
 	stdinProxy.Run()
+
+	fmt.Printf("nsfrontend started: Accepting command from stdin... (^D to finish)\n")
 
 	// ^D to finish
 	stdinProxy.WaitClose()
