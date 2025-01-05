@@ -302,6 +302,7 @@ func mainLoop(con *nscontroller.Controller, input *os.File) error {
 
 	co.Start()
 
+	fmt.Printf("nsbackend: Waiting for input... (^D to exit)\n")
 	for scanner.Scan() {
 		input := strings.ToLower(strings.TrimSpace(scanner.Text()))
 		if input == "q" {
@@ -309,7 +310,7 @@ func mainLoop(con *nscontroller.Controller, input *os.File) error {
 		}
 		co.Send(input)
 	}
-	common.Debug("Input closed.")
+	fmt.Printf("nsbackend: exiting...\n")
 
 	co.Close()
 	co.Wait()
