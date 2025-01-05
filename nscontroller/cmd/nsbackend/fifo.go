@@ -8,16 +8,7 @@ import (
 	"github.com/omakoto/go-common/src/common"
 )
 
-func getFifoPath() string {
-	path := os.Getenv("NSBACKEND_FIFO")
-	if path != "" {
-		return path
-	}
-	return os.TempDir() + "/nsbackend.fifo"
-}
-
-func mustOpenFifo() *os.File {
-	path := getFifoPath()
+func mustCreateFifo(path string) *os.File {
 	common.Debugf("Creating FIFO at '%s'", path)
 
 	_, err := os.Stat(path)

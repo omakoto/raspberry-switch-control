@@ -20,9 +20,10 @@ const (
 )
 
 var (
-	debug  = getopt.BoolLong("debug", 'd', "Enable debug output")
-	device = getopt.StringLong("device", 'f', "/dev/hidg0", "Specify device file")
-	daemon = getopt.BoolLong("daemon", 'x', "Run as daemon")
+	debug      = getopt.BoolLong("debug", 'd', "Enable debug output")
+	device     = getopt.StringLong("device", 'f', "/dev/hidg0", "Specify device file")
+	createFifo = getopt.BoolLong("make-fifo", 0, "Create a FIFO and read commands from it")
+	fifo       = getopt.StringLong("fifo", 0, "/tmp/nsbackup.fifo", "Specify FIFO filename")
 
 	autoReleaseMillis = getopt.IntLong("auto-release-millis", 'a', 50, "Set auto-release delay in milliseconds")
 )
@@ -343,22 +344,23 @@ func realMain() int {
 	if *autoReleaseMillis < AUTO_RELEASE_MILLIS_MIN {
 		*autoReleaseMillis = AUTO_RELEASE_MILLIS_MIN
 	}
-	con := nscontroller.NewController(*device)
 	if *debug {
 		// con.LogLevel = 2
 		common.DebugEnabled = true
 		common.VerboseEnabled = true
 	}
-	defer con.Close()
 
 	input := os.Stdin
 
-	if *daemon {
-		// Daemonize
+	if *createFifo {
 		fmt.Printf("Starting as a daemon...\n")
-		input = mustOpenFifo()
+		input = mustCreateFifo(*fifo)
+		fmt.Printf("To stop it, run: echo 'q' > '%s'\n", input.Name())
 		fmt.Printf("Reading input from '%s'...\n", input.Name())
 	}
+
+	con := nscontroller.NewController(*device)
+	defer con.Close()
 
 	// Connect to Switch
 	common.Debugf("Opening %s...\n", *device)
