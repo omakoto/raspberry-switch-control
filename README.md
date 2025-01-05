@@ -29,17 +29,17 @@ Tested on Ubuntu 24 (on Pi 4) and the latest Raspberry Pi OS (on Zero W 2) on 20
 
         go install -v github.com/omakoto/raspberry-switch-control/nscontroller/cmd/...@latest
 
-1. Download source for the following script.
+1. ~~Download source for the following script.~~
 
-        mkdir -p $HOME/src
-        cd $HOME/src
-        git clone https://github.com/omakoto/raspberry-switch-control.git
+    This step is no longer needed. Now you can use the following sudo command to run the script.
 
-1. Create the USB gadget. Do it once after every reboot.
+1. Create the USB gadget by running the `switch-controller-gadget` script.
 
-        sudo $HOME/src/raspberry-switch-control/nscontroller/scripts/switch-controller-gadget
+    The path to this script is not stable. Run `nsbackend usb-init-script-path` to get the path.
 
-1. Connect the Raspberry Pi to the Nintendo Switch
+        sudo bash "$($HOME/go/bin/nsbackend usb-init-script-path)"
+
+2. Connect the Raspberry Pi to the Nintendo Switch
 
   - If it's a Pi 4 or 5, use the USB-C port.
     

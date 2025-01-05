@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"fmt"
 	"math"
 	"os"
 	"strconv"
@@ -21,6 +22,7 @@ const (
 var (
 	debug  = getopt.BoolLong("debug", 'd', "Enable debug output")
 	device = getopt.StringLong("device", 'f', "/dev/hidg0", "Specify device file")
+	daemon = getopt.BoolLong("daemon", 'x', "Run as daemon")
 
 	autoReleaseMillis = getopt.IntLong("auto-release-millis", 'a', 50, "Set auto-release delay in milliseconds")
 )
@@ -289,10 +291,9 @@ func (co *Coordinator) sendToController(command string) {
 	}
 }
 
-func mainLoop(con *nscontroller.Controller) error {
-	// Wait for stdin and convert to the command.
+func mainLoop(con *nscontroller.Controller, input *os.File) error {
 	co := NewCoordinator(con)
-	scanner := bufio.NewScanner(os.Stdin)
+	scanner := bufio.NewScanner(input)
 
 	co.Start()
 
@@ -346,8 +347,18 @@ func realMain() int {
 	if *debug {
 		// con.LogLevel = 2
 		common.DebugEnabled = true
+		common.VerboseEnabled = true
 	}
 	defer con.Close()
+
+	input := os.Stdin
+
+	if *daemon {
+		// Daemonize
+		fmt.Printf("Starting as a daemon...\n")
+		input = mustOpenFifo()
+		fmt.Printf("Reading input from '%s'...\n", input.Name())
+	}
 
 	// Connect to Switch
 	common.Debugf("Opening %s...\n", *device)
@@ -355,7 +366,7 @@ func realMain() int {
 	err := con.Connect()
 	common.Checkf(err, "Unable to connect to device %s", *device)
 
-	err = mainLoop(con)
+	err = mainLoop(con, input)
 	common.Check(err, "Failed to read from input")
 
 	return 0
