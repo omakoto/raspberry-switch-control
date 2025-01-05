@@ -8,6 +8,7 @@ import (
 	"strconv"
 	"strings"
 	"sync"
+	"syscall"
 	"time"
 
 	"github.com/omakoto/go-common/src/common"
@@ -336,6 +337,8 @@ func maybeHandleSubcommand() int {
 }
 
 func realMain() int {
+	syscall.Umask(0)
+
 	if ret := maybeHandleSubcommand(); ret >= 0 {
 		return ret
 	}
@@ -373,7 +376,7 @@ func realMain() int {
 	if *createFifo {
 		fmt.Printf("Creating FIFO at %s...\n", input.Name())
 		input = mustCreateFifo(*fifo)
-		fmt.Printf("To stop it, run: echo 'q' > '%s'\n", input.Name())
+		fmt.Printf("To stop it, run: echo q > '%s'\n", input.Name())
 		fmt.Printf("Reading input from '%s'...\n", input.Name())
 	}
 
