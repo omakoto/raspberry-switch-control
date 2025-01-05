@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/omakoto/go-common/src/common"
+	"github.com/omakoto/go-common/src/fileutils"
 	"github.com/omakoto/raspberry-switch-control/nscontroller"
 	"github.com/omakoto/raspberry-switch-control/nscontroller/daemon"
 	"github.com/pborman/getopt/v2"
@@ -337,6 +338,26 @@ func maybeHandleSubcommand() int {
 	return -1
 }
 
+func asyncConnect(con *nscontroller.Controller) {
+	go func() {
+		// Wait until the device shows up
+		if !fileutils.FileExists(con.Path()) {
+			fmt.Printf("Waiting for device '%s' to show up...\n", *device)
+			for {
+				if fileutils.FileExists(con.Path()) {
+					break
+				}
+				time.Sleep(time.Millisecond * 100)
+			}
+		}
+
+		fmt.Printf("Opening %s...\n", *device)
+		err := con.Connect()
+		fmt.Printf("Opened %s\n", *device)
+		common.Checkf(err, "Unable to connect to device '%s'", *device)
+	}()
+}
+
 func realMain() int {
 	syscall.Umask(0)
 
@@ -384,13 +405,10 @@ func realMain() int {
 	con := nscontroller.NewController(*device)
 	defer con.Close()
 
-	// Connect to Switch
-	common.Debugf("Opening %s...\n", *device)
+	// Open the USB gadget device asynchronously.
+	asyncConnect(con)
 
-	err := con.Connect()
-	common.Checkf(err, "Unable to connect to device %s", *device)
-
-	err = mainLoop(con, input)
+	err := mainLoop(con, input)
 	common.Check(err, "Failed to read from input")
 
 	return 0

@@ -75,6 +75,10 @@ func NewController(path string) *Controller {
 	}
 }
 
+func (c *Controller) Path() string {
+	return c.path
+}
+
 // Close closes all channel and device file
 func (c *Controller) Close() {
 	if c.fp == nil {
