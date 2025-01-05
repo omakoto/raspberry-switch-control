@@ -2,13 +2,28 @@ package main
 
 import (
 	"fmt"
+	"io"
+	"os"
 	"path/filepath"
 
 	"github.com/omakoto/go-common/src/common"
 )
 
-func printUsbInitScriptPath() {
+func usbInitScriptPath() string {
 	thisFile, _ := common.GetSourceInfo()
-	script := filepath.Clean(filepath.Dir(thisFile) + "/../../../scripts/switch-controller-gadget")
-	fmt.Printf("%s\n", script)
+	return filepath.Clean(filepath.Dir(thisFile) + "/../../../scripts/switch-controller-gadget")
+}
+
+func printUsbInitScriptPath() {
+	fmt.Printf("%s\n", usbInitScriptPath())
+}
+
+func printUsbInitScript() {
+	script, err := os.Open(usbInitScriptPath())
+	common.Checke(err)
+
+	content, err := io.ReadAll(script)
+	common.Checke(err)
+
+	fmt.Printf("%s", content)
 }
