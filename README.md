@@ -39,6 +39,13 @@ Tested on Ubuntu 24 (on Pi 4) and the latest Raspberry Pi OS (on Zero W 2) on 20
 
         sudo bash "$($HOME/go/bin/nsbackend usb-init-script-path)"
 
+    Or, add the following entry to root's `crontabe` (i.e. `sudo crontab -e` and add it)
+    Change `/home/pi/` as needed.
+
+
+        @reboot bash -c ". $(/home/pi/go/bin/nsbackend usb-init-script-path)"
+
+
 2. Connect the Raspberry Pi to the Nintendo Switch
 
   - If it's a Pi 4 or 5, use the USB-C port.

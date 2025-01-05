@@ -26,7 +26,7 @@ var (
 	device        = getopt.StringLong("device", 'f', "/dev/hidg0", "Specify device file")
 	startAsDaemon = getopt.BoolLong("daemon", 'x', "Run as daemon (implies --make-fifo)")
 	createFifo    = getopt.BoolLong("make-fifo", 0, "Create a FIFO and read commands from it")
-	fifo          = getopt.StringLong("fifo", 0, "/tmp/nsbackup.fifo", "Specify FIFO filename")
+	fifo          = getopt.StringLong("fifo", 0, "/tmp/nsbackend.fifo", "Specify FIFO filename")
 
 	autoReleaseMillis = getopt.IntLong("auto-release-millis", 'a', 50, "Set auto-release delay in milliseconds")
 )
