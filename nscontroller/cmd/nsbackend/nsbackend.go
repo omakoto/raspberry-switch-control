@@ -307,7 +307,27 @@ func mainLoop(con *nscontroller.Controller) error {
 	return scanner.Err()
 }
 
+func maybeHandleSubcommand() int {
+	if len(os.Args) > 1 {
+		subcommand := os.Args[1]
+		if !strings.HasPrefix(subcommand, "-") {
+			switch subcommand {
+			case "usb-init-script":
+				printUsbInitScriptPath()
+				return 0
+			default:
+				common.Fatalf("Unknown subcommand: %s", subcommand)
+			}
+		}
+	}
+	return -1
+}
+
 func realMain() int {
+	if ret := maybeHandleSubcommand(); ret >= 0 {
+		return ret
+	}
+
 	getopt.Parse()
 	if device == nil {
 		*device = "/dev/hidg0"
