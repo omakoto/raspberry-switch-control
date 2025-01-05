@@ -12,6 +12,7 @@ import (
 
 	"github.com/omakoto/go-common/src/common"
 	"github.com/omakoto/raspberry-switch-control/nscontroller"
+	"github.com/omakoto/raspberry-switch-control/nscontroller/daemon"
 	"github.com/pborman/getopt/v2"
 )
 
@@ -20,10 +21,12 @@ const (
 )
 
 var (
-	debug      = getopt.BoolLong("debug", 'd', "Enable debug output")
-	device     = getopt.StringLong("device", 'f', "/dev/hidg0", "Specify device file")
-	createFifo = getopt.BoolLong("make-fifo", 0, "Create a FIFO and read commands from it")
-	fifo       = getopt.StringLong("fifo", 0, "/tmp/nsbackup.fifo", "Specify FIFO filename")
+	help          = getopt.BoolLong("help", 'h', "help")
+	debug         = getopt.BoolLong("debug", 'd', "Enable debug output")
+	device        = getopt.StringLong("device", 'f', "/dev/hidg0", "Specify device file")
+	startAsDaemon = getopt.BoolLong("daemon", 'x', "Run as daemon (implies --make-fifo)")
+	createFifo    = getopt.BoolLong("make-fifo", 0, "Create a FIFO and read commands from it")
+	fifo          = getopt.StringLong("fifo", 0, "/tmp/nsbackup.fifo", "Specify FIFO filename")
 
 	autoReleaseMillis = getopt.IntLong("auto-release-millis", 'a', 50, "Set auto-release delay in milliseconds")
 )
@@ -338,22 +341,37 @@ func realMain() int {
 	}
 
 	getopt.Parse()
-	if device == nil {
-		*device = "/dev/hidg0"
+	if *help {
+		getopt.Usage()
+		return 0
 	}
-	if *autoReleaseMillis < AUTO_RELEASE_MILLIS_MIN {
-		*autoReleaseMillis = AUTO_RELEASE_MILLIS_MIN
-	}
+
 	if *debug {
 		// con.LogLevel = 2
 		common.DebugEnabled = true
 		common.VerboseEnabled = true
 	}
 
+	if *startAsDaemon {
+		if daemon.Start() {
+			// parent
+			return 0
+		}
+		// In daemon mode, always use FIFO
+		*createFifo = true
+	}
+
+	if *autoReleaseMillis < AUTO_RELEASE_MILLIS_MIN {
+		*autoReleaseMillis = AUTO_RELEASE_MILLIS_MIN
+	}
+	if device == nil {
+		*device = "/dev/hidg0"
+	}
+
 	input := os.Stdin
 
 	if *createFifo {
-		fmt.Printf("Starting as a daemon...\n")
+		fmt.Printf("Creating FIFO at %s...\n", input.Name())
 		input = mustCreateFifo(*fifo)
 		fmt.Printf("To stop it, run: echo 'q' > '%s'\n", input.Name())
 		fmt.Printf("Reading input from '%s'...\n", input.Name())
