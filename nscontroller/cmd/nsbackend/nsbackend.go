@@ -319,7 +319,7 @@ func maybeHandleSubcommand() int {
 			case "usb-init-script-path":
 				printUsbInitScriptPath()
 				return 0
-			case "usb-init-script":
+			case "show-usb-init-script":
 				printUsbInitScript()
 				return 0
 			default:

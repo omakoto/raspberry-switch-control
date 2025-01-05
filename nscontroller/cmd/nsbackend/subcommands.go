@@ -11,7 +11,7 @@ import (
 
 func usbInitScriptPath() string {
 	thisFile, _ := common.GetSourceInfo()
-	return filepath.Clean(filepath.Dir(thisFile) + "/../../../scripts/switch-controller-gadget")
+	return filepath.Clean(filepath.Dir(thisFile) + "/../../scripts/switch-controller-gadget")
 }
 
 func printUsbInitScriptPath() {
