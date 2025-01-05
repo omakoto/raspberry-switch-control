@@ -83,13 +83,16 @@ Tested on Ubuntu 24 (on Pi 4) and the latest Raspberry Pi OS (on Zero W 2) on 20
 
 ## Run backend as daemon (Advanced use)
 
-1. Start the backend with `-x`:
+1. Auto start `nsbackend` as a daemon. Add this to `root`'s crontab.
 
-        $HOME/go/bin/nsbackend -x
+        $ sudo crontab -l
+        # ...
+        @reboot bash -c ". $(/home/pi/go/bin/nsbackend usb-init-script-path); /home/pi/go/bin/nsbackend -x"
 
-1. Write to `/tmp/nsbackend.fifo` instead:
 
-        nsfrontend -j /dev/input/js0 -o >(ssh pi@$PI_ADDRESS 'cat > /tmp/nsbackend.fifo') 
+1. Then write to `/tmp/nsbackend.fifo` from `nsfrontend` instead:
+
+        nsfrontend -j /dev/input/js0 -o >(ssh pi@$PI_ADDRESS 'echo "SSH Connected."; cat > /tmp/nsbackend.fifo') 
 
 
 ## TODOs
