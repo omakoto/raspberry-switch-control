@@ -37,7 +37,7 @@ Tested on Ubuntu 24 (on Pi 4) and the latest Raspberry Pi OS (on Zero W 2) on 20
 
 1. Create the USB gadget. Do it once after every reboot.
 
-        sudo $HOME/src/raspberry-switch-control/scripts/switch-controller-gadget
+        sudo $HOME/src/raspberry-switch-control/nscontroller/scripts/switch-controller-gadget
 
 1. Connect the Raspberry Pi to the Nintendo Switch
 
