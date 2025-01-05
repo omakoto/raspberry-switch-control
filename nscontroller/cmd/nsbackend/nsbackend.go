@@ -36,7 +36,7 @@ func parseCommand(s string) (command string, arg float64, autoRelease bool, err 
 	if len(arr) == 0 {
 		return "", 0, false, nil
 	}
-	command = strings.ToLower(arr[0])
+	command = arr[0]
 	if len(arr) > 1 {
 		arg, err = strconv.ParseFloat(arr[1], 32)
 		if err != nil {
@@ -297,7 +297,11 @@ func mainLoop(con *nscontroller.Controller) error {
 	co.Start()
 
 	for scanner.Scan() {
-		co.Send(scanner.Text())
+		input := strings.ToLower(strings.TrimSpace(scanner.Text()))
+		if input == "q" {
+			break
+		}
+		co.Send(input)
 	}
 	common.Debug("Input closed.")
 
