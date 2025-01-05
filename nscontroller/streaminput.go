@@ -5,6 +5,7 @@ import (
 	"io"
 	"regexp"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/omakoto/go-common/src/common"
@@ -15,6 +16,7 @@ const streamInputOffDelay = time.Millisecond * 60
 type StreamInput struct {
 	in   io.ReadCloser
 	next Consumer
+	wg   *sync.WaitGroup
 }
 
 var _ Worker = (*StreamInput)(nil)
@@ -23,6 +25,7 @@ func NewStreamInput(in io.ReadCloser, next Consumer) (*StreamInput, error) {
 	return &StreamInput{
 		in,
 		next,
+		&sync.WaitGroup{},
 	}, nil
 }
 
@@ -53,7 +56,10 @@ func (t *StreamInput) press(a Action) {
 
 func (t *StreamInput) Run() {
 	comment_re := regexp.MustCompile(`#.*`)
+
+	t.wg.Add(1)
 	go func() {
+		defer t.wg.Done()
 		scanner := bufio.NewScanner(t.in)
 		for scanner.Scan() {
 			in := scanner.Text()
@@ -120,4 +126,8 @@ func (t *StreamInput) Run() {
 			}
 		}
 	}()
+}
+
+func (t *StreamInput) WaitClose() {
+	t.wg.Wait()
 }

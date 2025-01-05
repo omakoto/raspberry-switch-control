@@ -64,11 +64,8 @@ func realMain() int {
 	joystick.Run()
 	stdinProxy.Run()
 
-	// Wait forever for now
-	wait := make(chan bool)
-	select {
-	case <-wait:
-	}
+	// ^D to finish
+	stdinProxy.WaitClose()
 
 	common.Debugf("%s finishing", myName)
 
