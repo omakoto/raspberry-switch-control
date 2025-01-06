@@ -1,8 +1,10 @@
 github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
-github.com/omakoto/go-common v0.0.0-20250105043350-c02ce2583e7a h1:Irb3zNA1AQ4ErMvVQNjppoAWePpDUmI32/SA5IyEYWM=
-github.com/omakoto/go-common v0.0.0-20250105043350-c02ce2583e7a/go.mod h1:PTXHLjhhbm2AqU2T10tH1YQrKh6JWG+31pX2Mijz0t8=
+github.com/omakoto/go-common v0.0.0-20250106012551-bd15a26150cb h1:tCyR3r2UQhNSW8Qb4Udr8urd3xRpQ6f9uyyT4Om7zNk=
+github.com/omakoto/go-common v0.0.0-20250106012551-bd15a26150cb/go.mod h1:79jtLB8yi647+nptKL2Zf2y6zhJAT1ta16hdzi+3RLw=
+github.com/omakoto/go-common v0.0.0-20250106043038-04d11d1e6ee4 h1:I1EF105AHqR4kOBHoNnqV+MbuXZKekjvL31a2dZMPsY=
+github.com/omakoto/go-common v0.0.0-20250106043038-04d11d1e6ee4/go.mod h1:79jtLB8yi647+nptKL2Zf2y6zhJAT1ta16hdzi+3RLw=
 github.com/pborman/getopt v0.0.0-20190409184431-ee0cd42419d3 h1:YtFkrqsMEj7YqpIhRteVxJxCeC3jJBieuLr0d4C4rSA=
 github.com/pborman/getopt v0.0.0-20190409184431-ee0cd42419d3/go.mod h1:85jBQOZwpVEaDAr341tbn15RS4fCAsIst0qp7i8ex1o=
-golang.org/x/sys v0.20.0 h1:Od9JTbYCk261bKm4M/mw7AklTlFYIa0bIp9BgSm1S8Y=
-golang.org/x/sys v0.20.0/go.mod h1:/VUhepiaJMQUp4+oa/7Zr1D23ma6VTLIYjOOTFZPUcA=
+golang.org/x/sys v0.24.0 h1:Twjiwq9dn6R1fQcyiK+wQyHWfaz/BJB+YIpzU/Cv3Xg=
+golang.org/x/sys v0.24.0/go.mod h1:/VUhepiaJMQUp4+oa/7Zr1D23ma6VTLIYjOOTFZPUcA=
