@@ -23,33 +23,47 @@ const (
 )
 
 var (
-	help          = getopt.BoolLong("help", 'h', "help")
-	debug         = getopt.BoolLong("debug", 'd', "Enable debug output")
-	device        = getopt.StringLong("device", 'f', "/dev/hidg0", "Specify device file")
-	startAsDaemon = getopt.BoolLong("daemon", 'x', "Run as daemon (implies --make-fifo)")
-	createFifo    = getopt.BoolLong("make-fifo", 0, "Create a FIFO and read commands from it")
-	fifo          = getopt.StringLong("fifo", 0, "/tmp/nsbackend.fifo", "Specify FIFO filename")
+	help                  = getopt.BoolLong("help", 'h', "help")
+	debug                 = getopt.BoolLong("debug", 'd', "Enable debug output")
+	device                = getopt.StringLong("device", 'f', "/dev/hidg0", "Specify device file")
+	startAsDaemon         = getopt.BoolLong("daemon", 'x', "Run as daemon (implies --make-fifo)")
+	createFifo            = getopt.BoolLong("make-fifo", 0, "Create a FIFO and read commands from it")
+	fifo                  = getopt.StringLong("fifo", 0, "/tmp/nsbackend.fifo", "Specify FIFO filename")
+	autoReleaseMillis     = getopt.IntLong("auto-release-millis", 'a', 50, "Set auto-release delay in milliseconds")
+	usbTickIntervalMillis = getopt.IntLong("tick-interval-millis", 0, 5, "Send updates to Switch every this milliseconds")
 
-	autoReleaseMillis = getopt.IntLong("auto-release-millis", 'a', 50, "Set auto-release delay in milliseconds")
+	autoReleaseDur time.Duration
 )
 
 // The delay needs to be bigger than the interval within startInputReport().
-const AUTO_RELEASE_MILLIS_MIN = 50
+const AUTO_RELEASE_MILLIS_MIN = 20
 
-func parseCommand(s string) (command string, arg float64, autoRelease bool, err error) {
+func parseCommand(s string) (command string, arg float64, autoRelease bool, err error, dur time.Duration) {
 	command = ""
 	arg = 0
 
 	arr := strings.Fields(s)
 	if len(arr) == 0 {
-		return "", 0, false, nil
+		return "", 0, false, nil, 0
 	}
-	command = arr[0]
-	if len(arr) > 1 {
-		arg, err = strconv.ParseFloat(arr[1], 32)
+	cmdIndex := 0
+
+	if len(arr[0]) > 0 && '0' <= arr[0][0] && arr[0][0] <= '9' {
+		durationSec, err := strconv.ParseFloat(arr[0], 32)
 		if err != nil {
 			common.Warnf("Invalid float: %#v", arr[1])
-			return "", 0, false, err
+			return "", 0, false, err, 0
+		}
+		dur = time.Duration(durationSec * float64(time.Second))
+		cmdIndex = 1
+	}
+
+	command = arr[cmdIndex]
+	if len(arr) > cmdIndex+1 {
+		arg, err = strconv.ParseFloat(arr[cmdIndex+1], 32)
+		if err != nil {
+			common.Warnf("Invalid float: %#v", arr[1])
+			return "", 0, false, err, 0
 		}
 		if arg < -1 {
 			arg = -1
@@ -65,7 +79,7 @@ func parseCommand(s string) (command string, arg float64, autoRelease bool, err 
 	if autoRelease {
 		ar = " (auto-release)"
 	}
-	common.Debugf("Command=%#v arg=%f%s", command, arg, ar)
+	common.Debugf("Command=%#v arg=%f%s (dur=%v)", command, arg, ar, dur)
 	return
 }
 
@@ -111,10 +125,10 @@ func (co *Coordinator) Send(command string) {
 	co.ch <- command
 }
 
-func (co *Coordinator) SendDelayed(command string, waitMillis int) {
+func (co *Coordinator) SendDelayed(command string, delay time.Duration) {
 	co.checkStarted()
 	go func() {
-		time.Sleep(time.Duration(waitMillis) * time.Millisecond)
+		time.Sleep(delay)
 		co.Send(command)
 	}()
 }
@@ -146,7 +160,7 @@ func (co *Coordinator) Wait() {
 }
 
 func (co *Coordinator) sendToController(command string) {
-	command, arg, autoRelease, err := parseCommand(command)
+	command, arg, autoRelease, err, dur := parseCommand(command)
 	if err != nil || command == "" {
 		return
 	}
@@ -293,7 +307,13 @@ func (co *Coordinator) sendToController(command string) {
 	con.Dump()
 
 	if autoRelease {
-		co.SendDelayed(command+" 0", *autoReleaseMillis)
+		ds := ""
+		if dur > 0 {
+			ds = fmt.Sprintf("%f ", math.Max(0, (dur-autoReleaseDur).Seconds()))
+		}
+		co.SendDelayed(ds+command+" 0", autoReleaseDur)
+	} else {
+		time.Sleep(dur)
 	}
 }
 
@@ -389,6 +409,7 @@ func realMain() int {
 	if *autoReleaseMillis < AUTO_RELEASE_MILLIS_MIN {
 		*autoReleaseMillis = AUTO_RELEASE_MILLIS_MIN
 	}
+	autoReleaseDur = time.Duration(*autoReleaseMillis * int(time.Millisecond))
 	if device == nil {
 		*device = "/dev/hidg0"
 	}
@@ -402,7 +423,7 @@ func realMain() int {
 		fmt.Printf("Reading input from '%s'...\n", input.Name())
 	}
 
-	con := nscontroller.NewController(*device)
+	con := nscontroller.NewController(*device, time.Duration(*usbTickIntervalMillis*int(time.Millisecond)))
 	defer con.Close()
 
 	// Open the USB gadget device asynchronously.

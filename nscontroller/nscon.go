@@ -7,6 +7,7 @@ package nscontroller
 import (
 	"encoding/hex"
 	"errors"
+	"fmt"
 	"io"
 	"log"
 	"math"
@@ -15,11 +16,6 @@ import (
 	"time"
 
 	"github.com/omakoto/go-common/src/common"
-	"github.com/pborman/getopt/v2"
-)
-
-var (
-	tickIntervalMillis = getopt.IntLong("tick-interval-millis", 0, 5, "Send updates to Switch every this milliseconds")
 )
 
 var SPI_ROM_DATA = map[byte][]byte{
@@ -70,13 +66,15 @@ type Controller struct {
 	stopCommunicate chan struct{}
 	Input           ControllerInput
 	currentInput    ControllerInput
+	tickInterval    time.Duration
 	LogLevel        int
 }
 
 // NewController creates an instance of Controller with device path
-func NewController(path string) *Controller {
+func NewController(path string, tickInterval time.Duration) *Controller {
 	return &Controller{
-		path: path,
+		path:         path,
+		tickInterval: tickInterval,
 	}
 }
 
@@ -101,7 +99,7 @@ func (c *Controller) Close() {
 }
 
 func (c *Controller) startCounter() {
-	ticker := time.NewTicker(time.Millisecond * 5)
+	ticker := time.NewTicker(c.tickInterval)
 
 	go func() {
 		defer ticker.Stop()
@@ -182,13 +180,15 @@ func (c *Controller) getInputBuffer() []byte {
 }
 
 func (c *Controller) startInputReport() {
-	ticker := time.NewTicker(time.Millisecond * time.Duration(*tickIntervalMillis))
+	ticker := time.NewTicker(c.tickInterval)
+	fmt.Print(".")
 
 	go func() {
 		defer ticker.Stop()
 		for {
 			select {
 			case <-ticker.C:
+				fmt.Print(".")
 				c.write(0x30, c.count, c.getInputBuffer())
 			case <-c.stopInput:
 				return
