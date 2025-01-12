@@ -15,6 +15,11 @@ import (
 	"time"
 
 	"github.com/omakoto/go-common/src/common"
+	"github.com/pborman/getopt/v2"
+)
+
+var (
+	tickIntervalMillis = getopt.IntLong("tick-interval-millis", 0, 5, "Send updates to Switch every this milliseconds")
 )
 
 var SPI_ROM_DATA = map[byte][]byte{
@@ -177,7 +182,7 @@ func (c *Controller) getInputBuffer() []byte {
 }
 
 func (c *Controller) startInputReport() {
-	ticker := time.NewTicker(time.Millisecond * 30)
+	ticker := time.NewTicker(time.Millisecond * time.Duration(*tickIntervalMillis))
 
 	go func() {
 		defer ticker.Stop()
@@ -221,7 +226,7 @@ func (c *Controller) write(ack byte, cmd byte, buf []byte) {
 func (c *Controller) Connect() error {
 	var err error
 	if c.fp != nil {
-		return errors.New("Already connected.")
+		return errors.New("already connected")
 	}
 
 	c.fp, err = os.OpenFile(c.path, os.O_RDWR|os.O_SYNC, os.ModeDevice)
