@@ -29,6 +29,10 @@ func mustGetDispatcher(js *js.Js) nscontroller.JoystickDispatcher {
 	if strings.Contains(js.Name, "Sony Interactive Entertainment Wireless Controller") {
 		return nscontroller.PsJoystickDispatcher
 	}
+	// Old PS4 controller: https://github.com/omakoto/raspberry-switch-control/issues/4
+	if strings.Contains(js.Name, "Sony Computer Entertainment Wireless Controller") {
+		return nscontroller.PsJoystickDispatcher
+	}
 	common.Fatalf("Unknown joystick: %s", js.Name)
 	return nil
 }
