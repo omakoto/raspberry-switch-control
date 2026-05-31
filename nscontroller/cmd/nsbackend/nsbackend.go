@@ -244,7 +244,7 @@ func (co *Coordinator) sendToController(command string) {
 		// Left stick alternative
 	case "lu":
 		con.Input.Stick.Left.X = 0
-		con.Input.Stick.Left.Y = -fdarg
+		con.Input.Stick.Left.Y = fdarg
 	case "ld":
 		con.Input.Stick.Left.X = 0
 		con.Input.Stick.Left.Y = -fdarg
