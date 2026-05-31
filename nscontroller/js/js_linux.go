@@ -1,7 +1,8 @@
 //go:build linux
 
-// Package js is a simple API to interact with the joystick (on Linux).
 package js
+
+// This file contains Linux-specific APIs for reading and polling raw input events from /dev/input/jsX.
 
 // Based on: https://gist.githubusercontent.com/rdb/8864666/raw/516178252bbe1cfe8067145b11223ee54c5d9698/js_linux.py
 // API reference: https://www.kernel.org/doc/Documentation/input/joystick-api.txt

@@ -1,5 +1,7 @@
 package nscontroller
 
+// This file implements the JoystickInput worker that reads from the OS joystick and pumps events.
+
 import (
 	"github.com/omakoto/go-common/src/common"
 	"github.com/omakoto/raspberry-switch-control/nscontroller/js"

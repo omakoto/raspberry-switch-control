@@ -1,5 +1,7 @@
 package main
 
+// This file implements the main backend controller daemon which writes HID reports to /dev/hidg0.
+
 import (
 	"bufio"
 	"fmt"

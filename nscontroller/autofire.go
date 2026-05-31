@@ -1,5 +1,7 @@
 package nscontroller
 
+// This file implements the AutoFirer tick engine which simulates rapid button presses.
+
 import (
 	"time"
 

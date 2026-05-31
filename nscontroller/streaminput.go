@@ -1,5 +1,7 @@
 package nscontroller
 
+// This file implements the StreamInput reader which parses simple text commands from stdin.
+
 import (
 	"bufio"
 	"io"

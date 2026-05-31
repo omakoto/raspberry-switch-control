@@ -1,5 +1,7 @@
 package main
 
+// This file implements pipeline FIFO initialization and creation for the backend daemon.
+
 import (
 	"errors"
 	"os"

@@ -1,5 +1,7 @@
 package nscontroller
 
+// This file implements the Switch Pro Controller joystick event dispatcher and key mappings.
+
 import "github.com/omakoto/raspberry-switch-control/nscontroller/js"
 
 // NSProJoystickDispatcher is a dispatcher for the Switch Pro controller.

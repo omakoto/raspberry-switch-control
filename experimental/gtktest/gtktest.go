@@ -1,5 +1,7 @@
 package main
 
+// This file implements experimental keypress tests using the XGB X11 library.
+
 // See: https://github.com/BurntSushi/xgbutil/blob/master/keybind/doc.go
 import (
 	"fmt"

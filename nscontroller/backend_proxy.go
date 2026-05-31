@@ -1,5 +1,7 @@
 package nscontroller
 
+// This file implements the backend proxy which maps internal events to backend command strings and writes them to output.
+
 import (
 	"fmt"
 	"github.com/omakoto/go-common/src/common"

@@ -1,5 +1,7 @@
 package main
 
+// This file implements the main frontend program running on a host PC to capture joystick inputs.
+
 import (
 	"fmt"
 	"os"

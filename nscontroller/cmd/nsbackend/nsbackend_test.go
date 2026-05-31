@@ -1,5 +1,7 @@
 package main
 
+// This file contains backend parser unit tests verifying buttons, sticks, timings, and shortcuts.
+
 import (
 	"testing"
 	"time"

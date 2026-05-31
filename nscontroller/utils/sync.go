@@ -1,5 +1,7 @@
 package utils
 
+// This file implements helper wrappers for thread-safe concurrent closure executions.
+
 import "sync"
 
 type Synchronized struct {

@@ -1,5 +1,7 @@
 package main
 
+// This file implements backend subcommands for printing the USB init gadget script.
+
 import (
 	"fmt"
 	"io"

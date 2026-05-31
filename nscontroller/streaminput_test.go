@@ -1,5 +1,7 @@
 package nscontroller
 
+// This file contains unit tests for StreamInput command parsing, comments, and auto-releases.
+
 import (
 	"io"
 	"strings"

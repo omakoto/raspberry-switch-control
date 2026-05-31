@@ -4,6 +4,8 @@
 
 package nscontroller
 
+// This file contains low-level Pro Controller HID report packaging and device writes.
+
 import (
 	"encoding/hex"
 	"errors"

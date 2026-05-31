@@ -1,5 +1,7 @@
 package nscontroller
 
+// This file contains core action codes, button constants, and event structs for the controller emulation.
+
 import (
 	"io"
 	"time"
