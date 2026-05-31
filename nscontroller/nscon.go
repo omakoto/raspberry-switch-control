@@ -50,6 +50,8 @@ type ControllerInput struct {
 	}
 	Stick struct {
 		Left, Right struct {
+			// X: Range [-1..1]. -1.0 is Left, 1.0 is Right.
+			// Y: Range [-1..1]. 1.0 is Up (maps to 4095 / top), -1.0 is Down (maps to 0 / bottom).
 			X, Y  float64
 			Press uint8
 		}
