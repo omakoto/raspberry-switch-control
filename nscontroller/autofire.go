@@ -175,7 +175,7 @@ func (af *AutoFirer) tick() {
 			}
 			nextTimestamp := bs.autoLastTimestamp.Add(bs.interval)
 			if nextTimestamp.After(now) {
-				return
+				continue
 			}
 
 			// Synthesis an event.

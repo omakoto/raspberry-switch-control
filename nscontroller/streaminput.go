@@ -54,6 +54,10 @@ func (t *StreamInput) press(a Action) {
 	})()
 }
 
+// Run starts reading from the input stream.
+// NOTE: This is Working As Intended (WAI) to only accept simple, one-token directives
+// from stdin (e.g. single-letter button presses like "a", "b", or d-pad directions like "pu").
+// It does not parse multi-token commands, parameter values, or timing prefixes.
 func (t *StreamInput) Run() {
 	comment_re := regexp.MustCompile(`#.*`)
 
