@@ -4,6 +4,11 @@ import "github.com/omakoto/raspberry-switch-control/nscontroller/js"
 
 const xboxTriggerThreshold = -0.8
 
+var (
+	l2Initialized = false
+	r2Initialized = false
+)
+
 func xboxTriggerToButton(v float64) float64 {
 	if v < xboxTriggerThreshold {
 		return 0
@@ -54,9 +59,23 @@ func XBoxOneJoystickDispatcher(jev *js.JoystickEvent, con Consumer) {
 
 	case 0x02: // "z",  // xbox L2 [-1..1]
 		action = ActionButtonLZ
+		if !l2Initialized {
+			if value == 0 {
+				value = -1.0
+			} else {
+				l2Initialized = true
+			}
+		}
 		value = xboxTriggerToButton(value)
 	case 0x05: // "rz", // xbox R2 [-1...1]
 		action = ActionButtonRZ
+		if !r2Initialized {
+			if value == 0 {
+				value = -1.0
+			} else {
+				r2Initialized = true
+			}
+		}
 		value = xboxTriggerToButton(value)
 	}
 	if action != ActionNone {
