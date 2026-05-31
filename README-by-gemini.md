@@ -22,7 +22,9 @@ Credit: This project is based on and heavily relies on [mzyy94/nscon](https://gi
 
 - **Raspberry Pi**: Tested and confirmed working with **Raspberry Pi Zero W**, **Zero 2 W**, and **Pi 4**.
 
-  - *Note on Raspberry Pi 5*: [[This is totally unverified yet]]
+  - *Note on Raspberry Pi 5*:
+    > [!IMPORTANT]
+    > **This part is totally unverified yet**
 
     The Raspberry Pi 5 can support USB gadget mode, but its setup differs from previous models because of its updated I/O architecture and Raspberry Pi OS's transition to `NetworkManager` (replacing `dhcpcd`). 
     - To configure peripheral mode on Pi 5, use `dtoverlay=dwc2,dr_mode=peripheral` in `/boot/firmware/config.txt` and append `modules-load=dwc2` in `/boot/firmware/cmdline.txt`.
