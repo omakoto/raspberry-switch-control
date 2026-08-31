@@ -35,6 +35,9 @@ func (j *JoystickInput) Run() {
 				return
 			}
 			common.Checke(err)
+			if ev.Element == nil {
+				continue
+			}
 			common.Debugf("Joystick input=%x", ev.Element.Number)
 
 			j.dispatcher(&ev, j.next)

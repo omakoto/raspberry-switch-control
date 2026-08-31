@@ -147,8 +147,9 @@ const (
 	jsiocgnameBase = 0x80006a13
 	jsiocgaxes     = 0x80016a11
 	jsiocgbuttons  = 0x80016a12
-	jsiocgaxmap    = 0x80406a32
-	jsiocgbtnmap   = 0x80406a34
+	jsiocgaxmap            = 0x80406a32
+	jsiocgbtnmap           = 0x84006a34
+	jsiocgbtnmapFallback   = 0x80406a34
 )
 
 func jsiocgname(length int) uintptr {
@@ -184,35 +185,44 @@ func NewJs(device string) (*Js, error) {
 	js.Name = string(bytes.TrimRight(nameBuf, "\000"))
 
 	// Get the axis names.
-	axisCodes := make([]byte, js.NumAxes)
-	_, _, errno = unix.Syscall(unix.SYS_IOCTL, in.Fd(), uintptr(jsiocgaxmap), uintptr(unsafe.Pointer(&axisCodes[0])))
-	if errno != 0 {
-		return nil, fmt.Errorf("unable to get axis map of %#v: %w", device, errno)
-	}
 	js.Axes = make([]Element, js.NumAxes)
-	for i, v := range axisCodes {
-		js.Axes[i].Number = int(v)
-		name, found := axisNameMap[int(v)]
-		if !found {
-			name = fmt.Sprintf("unknown:0x%x", v)
+	if js.NumAxes > 0 {
+		axisCodes := make([]byte, 64)
+		_, _, errno = unix.Syscall(unix.SYS_IOCTL, in.Fd(), uintptr(jsiocgaxmap), uintptr(unsafe.Pointer(&axisCodes[0])))
+		if errno != 0 {
+			return nil, fmt.Errorf("unable to get axis map of %#v: %w", device, errno)
 		}
-		js.Axes[i].Name = name
+		for i := 0; i < js.NumAxes; i++ {
+			v := axisCodes[i]
+			js.Axes[i].Number = int(v)
+			name, found := axisNameMap[int(v)]
+			if !found {
+				name = fmt.Sprintf("unknown:0x%x", v)
+			}
+			js.Axes[i].Name = name
+		}
 	}
 
 	// Get the button names.
-	buttonCodes := make([]uint16, js.NumButtons)
-	_, _, errno = unix.Syscall(unix.SYS_IOCTL, in.Fd(), uintptr(jsiocgbtnmap), uintptr(unsafe.Pointer(&buttonCodes[0])))
-	if errno != 0 {
-		return nil, fmt.Errorf("unable to get button map of %#v: %w", device, errno)
-	}
 	js.Buttons = make([]Element, js.NumButtons)
-	for i, v := range buttonCodes {
-		js.Buttons[i].Number = int(v)
-		name, found := buttonNameMap[int(v)]
-		if !found {
-			name = fmt.Sprintf("unknown:0x%x", v)
+	if js.NumButtons > 0 {
+		buttonCodes := make([]uint16, 512)
+		_, _, errno = unix.Syscall(unix.SYS_IOCTL, in.Fd(), uintptr(jsiocgbtnmap), uintptr(unsafe.Pointer(&buttonCodes[0])))
+		if errno != 0 {
+			_, _, errno = unix.Syscall(unix.SYS_IOCTL, in.Fd(), uintptr(jsiocgbtnmapFallback), uintptr(unsafe.Pointer(&buttonCodes[0])))
+			if errno != 0 {
+				return nil, fmt.Errorf("unable to get button map of %#v: %w", device, errno)
+			}
 		}
-		js.Buttons[i].Name = name
+		for i := 0; i < js.NumButtons; i++ {
+			v := buttonCodes[i]
+			js.Buttons[i].Number = int(v)
+			name, found := buttonNameMap[int(v)]
+			if !found {
+				name = fmt.Sprintf("unknown:0x%x", v)
+			}
+			js.Buttons[i].Name = name
+		}
 	}
 
 	//// Read the initial state. -> not working
@@ -290,16 +300,22 @@ func (js *Js) Read() (JoystickEvent, error) {
 
 	switch oev.EventType &^ jsEventInit {
 	case jsEventAxis:
-		event.Element = &js.Axes[oev.Number]
-		event.Value = float64(oev.Value) / 32767.0
+		if int(oev.Number) < len(js.Axes) {
+			event.Element = &js.Axes[oev.Number]
+			event.Value = float64(oev.Value) / 32767.0
+		}
 	case jsEventButton:
-		event.Element = &js.Buttons[oev.Number]
-		event.Value = 0
-		if oev.Value != 0 {
-			event.Value = 1
+		if int(oev.Number) < len(js.Buttons) {
+			event.Element = &js.Buttons[oev.Number]
+			event.Value = 0
+			if oev.Value != 0 {
+				event.Value = 1
+			}
 		}
 	}
-	event.Element.Value = event.Value
+	if event.Element != nil {
+		event.Element.Value = event.Value
+	}
 	common.Dump("Event:", &event)
 
 	return event, nil
