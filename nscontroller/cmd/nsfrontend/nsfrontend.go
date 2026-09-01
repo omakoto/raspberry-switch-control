@@ -14,9 +14,10 @@ import (
 )
 
 var (
-	debug    = getopt.BoolLong("debug", 'd', "Enable debug output")
-	joystick = getopt.StringLong("joystick", 'j', "/dev/input/js0", "Specify joystick device file")
-	out      = getopt.StringLong("out", 'o', "/dev/stdout", "Specify backend file")
+	debug     = getopt.BoolLong("debug", 'd', "Enable debug output")
+	joystick  = getopt.StringLong("joystick", 'j', "/dev/input/js0", "Specify joystick device file")
+	out       = getopt.StringLong("out", 'o', "/dev/stdout", "Specify backend file")
+	rateLimit = getopt.IntLong("rate-limit", 'r', 120, "Input rate limit in Hz (0 to disable)")
 
 	myName = common.MustGetBinName()
 )
@@ -59,7 +60,10 @@ func realMain() int {
 	autoFirer := nscontroller.NewAutoFirer(backend.Consume)
 	defer autoFirer.Close()
 
-	joystick, err := nscontroller.NewJoystickInput(js, mustGetDispatcher(js), autoFirer.Consume)
+	rateLimiter := nscontroller.NewRateLimiter(*rateLimit, autoFirer.Consume)
+	defer rateLimiter.Close()
+
+	joystick, err := nscontroller.NewJoystickInput(js, mustGetDispatcher(js), rateLimiter.Consume)
 	common.Checke(err)
 	defer joystick.Close()
 
