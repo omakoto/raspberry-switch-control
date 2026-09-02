@@ -144,12 +144,12 @@ const (
 	jsEventAxis   = 0x02 // joystick moved
 	jsEventInit   = 0x80 // initial state of device
 
-	jsiocgnameBase = 0x80006a13
-	jsiocgaxes     = 0x80016a11
-	jsiocgbuttons  = 0x80016a12
-	jsiocgaxmap            = 0x80406a32
-	jsiocgbtnmap           = 0x84006a34
-	jsiocgbtnmapFallback   = 0x80406a34
+	jsiocgnameBase       = 0x80006a13
+	jsiocgaxes           = 0x80016a11
+	jsiocgbuttons        = 0x80016a12
+	jsiocgaxmap          = 0x80406a32
+	jsiocgbtnmap         = 0x84006a34
+	jsiocgbtnmapFallback = 0x80406a34
 )
 
 func jsiocgname(length int) uintptr {

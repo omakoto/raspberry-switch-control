@@ -56,6 +56,12 @@ func TestBackendProxy_Mappings(t *testing.T) {
 		{ActionAxisLY, 0.5, "ly 0.5\n"},
 		{ActionAxisRX, 0.25, "rx 0.25\n"},
 		{ActionAxisRY, -0.1, "ry -0.1\n"},
+		{ActionAxisLX, -0.0013428144169438765, "lx -0.0013\n"},
+		{ActionAxisLY, 0.0013428144169438765, "ly 0.0013\n"},
+		{ActionAxisRX, -0.00004, "rx 0\n"},
+		{ActionAxisRY, 0.00004, "ry 0\n"},
+		{ActionAxisLX, -0.00006, "lx -0.0001\n"},
+		{ActionAxisLY, 0.00006, "ly 0.0001\n"},
 		// Unmapped action should result in command being empty, writing " <value>\n"
 		{ActionNone, 1.0, " 1\n"},
 	}
@@ -150,5 +156,43 @@ func TestBackendProxy_Concurrency(t *testing.T) {
 	expectedLines := numGoroutines * numEventsPerGoroutine
 	if len(lines) != expectedLines {
 		t.Errorf("got %d lines, want %d", len(lines), expectedLines)
+	}
+}
+
+func TestBackendProxy_AxisRounding(t *testing.T) {
+	testCases := []struct {
+		input float64
+		want  string
+	}{
+		{-0.0013428144169438765, "lx -0.0013\n"},
+		{0.0013428144169438765, "lx 0.0013\n"},
+		{-0.000049, "lx 0\n"},
+		{0.000049, "lx 0\n"},
+		{-0.00005, "lx -0.0001\n"},
+		{0.00005, "lx 0.0001\n"},
+		{0.0, "lx 0\n"},
+		{-0.0, "lx 0\n"},
+		{1.0, "lx 1\n"},
+		{-1.0, "lx -1\n"},
+		{0.5, "lx 0.5\n"},
+		{-0.5, "lx -0.5\n"},
+		{0.123456, "lx 0.1235\n"},
+		{-0.123456, "lx -0.1235\n"},
+	}
+
+	for _, tc := range testCases {
+		mock := &mockWriteCloser{}
+		proxy, err := NewBackendConsumer(mock)
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+
+		ev := NewEventFromAction(ActionAxisLX, tc.input)
+		proxy.Consume(&ev)
+
+		got := mock.String()
+		if got != tc.want {
+			t.Errorf("input %f: got %q, want %q", tc.input, got, tc.want)
+		}
 	}
 }

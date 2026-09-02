@@ -4,9 +4,11 @@ package nscontroller
 
 import (
 	"fmt"
+	"io"
+	"math"
+
 	"github.com/omakoto/go-common/src/common"
 	"github.com/omakoto/raspberry-switch-control/nscontroller/utils"
-	"io"
 )
 
 type BackendProxy struct {
@@ -82,7 +84,16 @@ func (b *BackendProxy) Consume(ev *Event) {
 			command = "ry"
 		}
 
-		msg := fmt.Sprint(command, " ", ev.Value, "\n")
+		val := ev.Value
+		if ev.Action.isAxis() {
+			// Round stick analog values to 4 digits below the 1's place, normalizing negative zero to zero.
+			val = math.Round(val*10000) / 10000
+			if val == 0 {
+				val = 0
+			}
+		}
+
+		msg := fmt.Sprint(command, " ", val, "\n")
 
 		_, err := b.out.Write([]byte(msg))
 		common.Checkf(err, "Unable to write the message")
